@@ -24,6 +24,7 @@ const note = (text: string): RecordValue => ({
   deleted: false,
   payload: {
     text,
+    paragraphs: [],
     meaningful: "",
     accomplished: "",
     tomorrow: "",
@@ -300,5 +301,225 @@ describe("backups and dates", () => {
     expect(() =>
       taskSchema.parse({ title: "x", category: "exercise", minutes: -1 }),
     ).toThrow();
+  });
+});
+
+describe("formatting and typography synchronization contract", () => {
+  it("saves font and independent category colors offline and synchronizes to a second device", async () => {
+    const { settingsSchema } = await import("../src/domain");
+    const settings: RecordValue = {
+      id: stableId("settings"),
+      day: "2000-01-01",
+      kind: "settings",
+      deleted: false,
+      payload: settingsSchema.parse({
+        fontScale: 1.57,
+        previousDayColor: "#AABBCC",
+        sameDayColor: "#123456",
+      }),
+    };
+    await a.edit(settings);
+    await engine(
+      a,
+      () => {},
+      () => false,
+    ).sync();
+    expect(cloud.records.size).toBe(0);
+    expect((await new Store("device-a").get(settings.id))?.payload).toEqual(
+      settings.payload,
+    );
+    await engine(a).sync();
+    await engine(b).sync();
+    expect((await b.get(settings.id))?.payload).toEqual(settings.payload);
+    await b.edit({
+      ...settings,
+      kind: "settings",
+      payload: { ...settings.payload, fontScale: 0.8 },
+    });
+    await engine(b).sync();
+    await engine(a).sync();
+    expect((await a.get(settings.id))?.payload).toMatchObject({
+      fontScale: 0.8,
+      previousDayColor: "#AABBCC",
+      sameDayColor: "#123456",
+    });
+  });
+  it("retains task classification and strike state on offline edits, backups and date moves", async () => {
+    const task: RecordValue = {
+      id: stableId("formatted-task"),
+      kind: "task",
+      day: "2026-10-24",
+      deleted: false,
+      payload: taskSchema.parse({
+        title: "Study 心血管",
+        category: "study",
+        classification: "previousDay",
+        strikethrough: true,
+      }),
+    };
+    await a.edit(task);
+    await engine(a).sync();
+    await engine(b).sync();
+    await b.edit({
+      ...task,
+      kind: "task",
+      day: "2026-10-25",
+      payload: { ...task.payload, title: "Revised plan" },
+    });
+    await engine(
+      b,
+      () => {},
+      () => false,
+    ).sync();
+    const backup = parseBackup(exportBackup(await b.all()));
+    expect(backup.records[0].payload).toMatchObject({
+      classification: "previousDay",
+      strikethrough: true,
+      completed: false,
+    });
+    await engine(b).sync();
+    await engine(a).sync();
+    expect((await a.get(task.id))?.payload).toMatchObject({
+      classification: "previousDay",
+      strikethrough: true,
+      completed: false,
+    });
+    await a.clear();
+    await a.importMissing(backup.records);
+    expect((await a.get(task.id))?.payload).toMatchObject({
+      classification: "previousDay",
+      strikethrough: true,
+    });
+  });
+  it("retains both paragraph versions through cloud conflicts and the formatting-preserving merge", async () => {
+    const { noteSchema } = await import("../src/domain");
+    const { withParagraphs, noteParagraphs } =
+      await import("../src/entryFormatting");
+    const initial = note("First plan");
+    if (initial.kind !== "note") throw new Error("Expected note");
+    initial.payload = withParagraphs(noteSchema.parse(initial.payload), [
+      {
+        id: crypto.randomUUID(),
+        text: "First plan",
+        classification: "previousDay",
+        strikethrough: true,
+      },
+    ]);
+    await a.edit(initial);
+    await engine(a).sync();
+    await engine(b).sync();
+    const local = {
+      ...initial,
+      payload: withParagraphs(
+        initial.payload,
+        noteParagraphs(initial.payload).map((p) => ({
+          ...p,
+          text: "Cancelled local plan",
+        })),
+      ),
+    };
+    const remote = {
+      ...initial,
+      payload: withParagraphs(initial.payload, [
+        {
+          id: crypto.randomUUID(),
+          text: "Remote reflection",
+          classification: "sameDay",
+          strikethrough: false,
+        },
+      ]),
+    };
+    await a.edit(local);
+    await b.edit(remote);
+    await engine(a).sync();
+    await engine(b).sync();
+    expect((await b.get(id))?.conflict?.payload).toMatchObject({
+      paragraphs: [{ classification: "previousDay", strikethrough: true }],
+    });
+    await b.resolve(id, "merge");
+    await engine(b).sync();
+    await engine(a).sync();
+    const merged = (await a.get(id))!;
+    expect(merged.kind).toBe("note");
+    if (merged.kind !== "note") throw new Error("Expected note");
+    expect(
+      merged.payload.paragraphs.map((p) => [
+        p.text,
+        p.classification,
+        p.strikethrough,
+      ]),
+    ).toEqual([
+      ["Remote reflection", "sameDay", false],
+      ["Cancelled local plan", "previousDay", true],
+    ]);
+    const backup = parseBackup(exportBackup(await a.all()));
+    await a.clear();
+    await a.importMissing(backup.records);
+    expect((await a.get(id))?.payload).toEqual(merged.payload);
+  });
+  it("keeps both preference versions until explicit conflict resolution", async () => {
+    const { settingsSchema } = await import("../src/domain");
+    const settings: RecordValue = {
+      id: stableId("settings"),
+      day: "2000-01-01",
+      kind: "settings",
+      deleted: false,
+      payload: settingsSchema.parse({}),
+    };
+    await a.edit(settings);
+    await engine(a).sync();
+    await engine(b).sync();
+    await a.edit({
+      ...settings,
+      kind: "settings",
+      payload: { ...settings.payload, fontScale: 1.6 },
+    });
+    await b.edit({
+      ...settings,
+      kind: "settings",
+      payload: { ...settings.payload, previousDayColor: "#FFFFFF" },
+    });
+    await engine(a).sync();
+    await engine(b).sync();
+    expect((await b.get(settings.id))?.payload).toMatchObject({
+      previousDayColor: "#FFFFFF",
+      fontScale: 1,
+    });
+    expect((await b.get(settings.id))?.conflict?.payload).toMatchObject({
+      fontScale: 1.6,
+    });
+    await b.resolve(settings.id, "local");
+    await engine(b).sync();
+    await engine(a).sync();
+    expect((await a.get(settings.id))?.payload).toMatchObject({
+      previousDayColor: "#FFFFFF",
+      fontScale: 1,
+    });
+  });
+  it("loads pre-update IndexedDB records with safe defaults without changing their text", async () => {
+    const raw = note("Legacy entry written at any time");
+    const request = indexedDB.open("daylight-v1");
+    const db = await new Promise<IDBDatabase>((resolve) => {
+      request.onsuccess = () => resolve(request.result);
+    });
+    await new Promise<void>((resolve) => {
+      const tx = db.transaction("records", "readwrite");
+      const legacy = {
+        ...raw,
+        owner: a.owner,
+        revision: 0,
+        mutation: crypto.randomUUID(),
+        pending: false,
+      };
+      if (legacy.kind === "note")
+        delete (legacy.payload as Partial<typeof legacy.payload>).paragraphs;
+      tx.objectStore("records").put(legacy);
+      tx.oncomplete = () => resolve();
+    });
+    db.close();
+    expect((await a.all())[0].payload).toMatchObject({
+      text: "Legacy entry written at any time",
+      paragraphs: [],
+    });
   });
 });

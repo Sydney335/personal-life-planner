@@ -17,7 +17,30 @@ export const validDay = (s: string) =>
   dayPattern.test(s) && localDay(parseDay(s)) === s;
 const daySchema = z.string().refine(validDay, "Invalid date");
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+// Subjective labels: only explicit user input assigns them. Never derive from dates.
+export const entryClassification = z.enum([
+  "unmarked",
+  "previousDay",
+  "sameDay",
+]);
+export type EntryClassification = z.infer<typeof entryClassification>;
+const entryFormatting = {
+  classification: entryClassification.default("unmarked"),
+  strikethrough: z.boolean().default(false),
+};
+export const paragraphSchema = z.object({
+  id: z.string().uuid(),
+  text: z.string().max(200000),
+  ...entryFormatting,
+});
+export type NoteParagraph = z.infer<typeof paragraphSchema>;
+export const defaultEntryColors = {
+  previousDayColor: "#9672B8",
+  sameDayColor: "#547FB7",
+};
+export const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 export const taskSchema = z.object({
+  ...entryFormatting,
   title: z.string().trim().min(1).max(500),
   category: z.enum(categories),
   notes: z.string().max(20000).default(""),
@@ -33,21 +56,46 @@ export const taskSchema = z.object({
   activityType: z.string().max(200).default(""),
   order: z.number().finite().default(0),
 });
-export const noteSchema = z.object({
-  text: z.string().max(200000).default(""),
-  meaningful: z.string().max(10000).default(""),
-  accomplished: z.string().max(10000).default(""),
-  tomorrow: z.string().max(10000).default(""),
-  complete: z.string().max(10000).default(""),
-  ended: z.boolean().default(false),
-  bedtime: timeSchema.default("01:00"),
-});
+export const noteSchema = z
+  .object({
+    paragraphs: z.array(paragraphSchema).max(10000).default([]),
+    text: z.string().max(200000).default(""),
+    meaningful: z.string().max(10000).default(""),
+    accomplished: z.string().max(10000).default(""),
+    tomorrow: z.string().max(10000).default(""),
+    complete: z.string().max(10000).default(""),
+    ended: z.boolean().default(false),
+    bedtime: timeSchema.default("01:00"),
+  })
+  .superRefine((note, ctx) => {
+    if (
+      note.paragraphs.length &&
+      note.paragraphs.reduce(
+        (n, p) => n + p.text.length,
+        (note.paragraphs.length - 1) * 2,
+      ) > 200000
+    )
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Note exceeds 200000 characters",
+      });
+    if (
+      new Set(note.paragraphs.map((p) => p.id)).size !== note.paragraphs.length
+    )
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Duplicate paragraph IDs",
+      });
+  });
 export const habitSchema = z.object({
   key: z.string().min(1).max(100),
   title: z.string().max(200),
   state: z.enum(["done", "skip", "blank"]),
 });
 export const settingsSchema = z.object({
+  fontScale: z.number().min(0.8).max(1.6).default(1),
+  previousDayColor: hexColorSchema.default(defaultEntryColors.previousDayColor),
+  sameDayColor: hexColorSchema.default(defaultEntryColors.sameDayColor),
   exerciseGoal: z.number().int().min(0).max(3000).default(150),
   bedtime: timeSchema.default("01:00"),
   moduleOrder: z
@@ -74,6 +122,7 @@ export type Settings = z.infer<typeof settingsSchema>;
 export type RecordValue = z.infer<typeof recordSchema>;
 export type RemoteRecord = RecordValue & {
   revision: number;
+  created_at?: string | null;
   updated_at: string;
   last_mutation: string;
 };

@@ -1,12 +1,15 @@
 import { openDB, type IDBPDatabase, type DBSchema } from "idb";
 import {
   recordSchema,
+  noteSchema,
+  type Note,
   sameValue,
   valueOf,
   type LocalRecord,
   type RecordValue,
   type RemoteRecord,
 } from "./domain";
+import { combinedNote } from "./entryFormatting";
 interface PlannerDB extends DBSchema {
   records: {
     key: [string, string];
@@ -26,7 +29,10 @@ export class Store {
   private readonly writer = crypto.randomUUID();
   constructor(readonly owner: string) {}
   async all() {
-    return (await dbPromise()).getAllFromIndex("records", "owner", this.owner);
+    const records = await (
+      await dbPromise()
+    ).getAllFromIndex("records", "owner", this.owner);
+    return records.map((r) => ({ ...r, ...valueOf(r) }));
   }
   async get(id: string) {
     return (await dbPromise()).get("records", [this.owner, id]);
@@ -120,7 +126,7 @@ export class Store {
   async resolve(
     id: string,
     choice: "local" | "remote" | "merge",
-    text?: string,
+    text?: string | Note,
   ) {
     const db = await dbPromise();
     const tx = db.transaction("records", "readwrite");
@@ -137,8 +143,20 @@ export class Store {
         });
       else {
         const val = valueOf(local);
-        if (choice === "merge" && val.kind === "note" && text !== undefined)
-          val.payload.text = text;
+        if (
+          choice === "merge" &&
+          val.kind === "note" &&
+          remote.kind === "note"
+        ) {
+          const formatted =
+            val.payload.paragraphs.length ||
+            (remote.payload.paragraphs?.length ?? 0);
+          // The UI merges paragraphs without flattening formatting. Keep the old
+          // plain-text API for unformatted clients and existing backups.
+          if (typeof text === "object") val.payload = noteSchema.parse(text);
+          else if (text !== undefined && !formatted) val.payload.text = text;
+          else val.payload = combinedNote(val.payload, remote.payload);
+        }
         await tx.store.put({
           ...recordSchema.parse(val),
           deleted: choice === "merge" ? false : val.deleted,

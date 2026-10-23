@@ -28,6 +28,7 @@ function remote(value: unknown): RemoteRecord {
   return {
     ...parsed,
     revision: raw.revision,
+    created_at: raw.created_at,
     updated_at: raw.updated_at,
     last_mutation: raw.last_mutation,
   };

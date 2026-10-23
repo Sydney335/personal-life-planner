@@ -1,4 +1,8 @@
 :root {
+  --font-scale: 1;
+  --previous-day-color: #9672b8;
+  --same-day-color: #547fb7;
+  font-size: calc(100% * var(--font-scale));
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
@@ -97,7 +101,7 @@ label {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   margin: 15px 0;
 }
@@ -109,14 +113,14 @@ p {
   margin-top: 0;
 }
 h1 {
-  font-size: clamp(28px, 3vw, 43px);
+  font-size: clamp(1.75rem, calc(3vw * var(--font-scale, 1)), 2.6875rem);
   font-weight: 500;
   letter-spacing: -1.8px;
   margin-bottom: 12px;
   line-height: 1.25;
 }
 h2 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.5;
   margin-bottom: 16px;
@@ -125,14 +129,14 @@ h2 {
   gap: 8px;
 }
 h3 {
-  font-size: 15px;
+  font-size: 0.9375rem;
   margin-top: 25px;
 }
 p {
   line-height: 1.8;
 }
 small {
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 hr {
@@ -145,7 +149,7 @@ hr {
   min-height: 44px;
   padding: 11px 19px;
   border-radius: 9px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .primary {
@@ -160,7 +164,7 @@ hr {
   min-height: 38px;
   padding: 8px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .quiet:hover {
   color: var(--accent);
@@ -180,7 +184,7 @@ hr {
 }
 .subtle,
 .module-hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
   line-height: 1.85;
 }
@@ -188,7 +192,7 @@ hr {
   color: var(--danger);
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -211,7 +215,7 @@ hr {
   align-items: center;
   gap: 10px;
   font-family: Georgia, "Noto Serif CJK SC", serif;
-  font-size: 28px;
+  font-size: 1.75rem;
   letter-spacing: -0.6px;
 }
 .brand svg {
@@ -241,7 +245,7 @@ hr {
   flex-direction: column;
 }
 .sidebar-tagline {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--muted);
   margin: 13px 0 35px;
 }
@@ -255,7 +259,7 @@ hr {
   justify-content: flex-start;
   gap: 13px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   border-radius: 9px;
   padding: 10px 14px;
 }
@@ -274,7 +278,7 @@ hr {
   padding-top: 25px;
 }
 .sidebar-footer p {
-  font-size: 10px;
+  font-size: 0.625rem;
   line-height: 1.8;
   color: var(--muted);
 }
@@ -282,7 +286,7 @@ hr {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 0.6875rem;
   margin-bottom: 9px;
 }
 .mini-heading .icon-button {
@@ -298,12 +302,12 @@ hr {
 .mini-grid small {
   text-align: center;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 0.5625rem;
   padding: 5px 0;
 }
 .mini-grid button {
   aspect-ratio: 1;
-  font-size: 10px;
+  font-size: 0.625rem;
   padding: 3px;
   border-radius: 50%;
   position: relative;
@@ -337,7 +341,7 @@ hr {
   gap: 12px;
 }
 .breadcrumb {
-  font-size: 10px;
+  font-size: 0.625rem;
   letter-spacing: 1.5px;
   color: var(--muted);
 }
@@ -351,7 +355,7 @@ hr {
   gap: 13px;
 }
 .sync-status {
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--muted);
   max-width: 280px;
   text-align: left;
@@ -385,7 +389,7 @@ hr {
   margin-bottom: 27px;
 }
 .page-heading p {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
   margin-bottom: 0;
 }
@@ -401,11 +405,11 @@ hr {
   border: 0;
   background: none;
   width: 130px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   padding: 7px;
 }
 .date-controls .quiet {
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .date-controls .icon-button {
   min-width: 27px;
@@ -417,7 +421,7 @@ hr {
 .error-banner {
   border-radius: 9px;
   padding: 12px 16px;
-  font-size: 12px;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -429,7 +433,7 @@ hr {
 }
 .local-banner {
   padding: 10px 14px;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .local-banner svg {
   flex-shrink: 0;
@@ -447,18 +451,18 @@ hr {
   border-block: 1px solid var(--line);
   padding: 14px 0;
   margin-bottom: 27px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--muted);
 }
 .summary-strip b {
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 500;
   color: var(--ink);
   margin-right: 6px;
 }
 .summary-strip button {
   margin-left: auto;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .planner-layout {
   display: grid;
@@ -493,7 +497,7 @@ hr {
   min-height: 34px;
 }
 .section-title h2 {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .section-title > svg {
   color: var(--muted);
@@ -528,7 +532,7 @@ hr {
   background: #9bafbf;
 }
 .module .module-hint {
-  font-size: 10px;
+  font-size: 0.625rem;
   margin: 12px 0;
 }
 .add-button {
@@ -539,7 +543,7 @@ hr {
 }
 .empty-state {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 0.6875rem;
   padding: 23px 0 7px;
   margin: 0;
   line-height: 1.8;
@@ -584,17 +588,16 @@ hr {
 }
 .task-content strong {
   font-weight: 400;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
   display: block;
 }
 .completed .task-content strong {
-  text-decoration: line-through;
-  color: var(--muted);
+  font-weight: 500;
 }
 .task-content span {
   display: block;
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--muted);
   margin-top: 5px;
   line-height: 1.8;
@@ -611,7 +614,7 @@ hr {
   width: 22px;
   min-height: 26px;
   padding: 0;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .reorder svg {
   display: none;
@@ -625,12 +628,12 @@ hr {
   background: var(--rail);
 }
 .habit-panel .eyebrow {
-  font-size: 8px;
+  font-size: 0.5rem;
   margin-bottom: 13px;
 }
 .habit-panel h2 {
   font-family: Georgia, serif;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 400;
 }
 .habit-row {
@@ -638,7 +641,7 @@ hr {
   align-items: center;
   gap: 10px;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 0.6875rem;
   border-bottom: 1px solid var(--line);
   padding: 10px 0;
 }
@@ -648,7 +651,7 @@ hr {
 .habit-row select {
   width: 76px;
   padding: 7px 4px;
-  font-size: 10px;
+  font-size: 0.625rem;
   background: var(--surface);
   border: 0;
   min-height: 36px;
@@ -662,11 +665,11 @@ hr {
   margin-bottom: 16px;
 }
 .note-teaser p {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 .note-teaser h2 {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-family: Georgia, serif;
   font-weight: 400;
 }
@@ -689,13 +692,13 @@ hr {
   align-items: center;
   gap: 20px;
   padding: 18px 42px;
-  font-size: 10px;
+  font-size: 0.625rem;
   letter-spacing: 0.8px;
   color: var(--muted);
   border-top: 1px solid var(--line);
 }
 .workspace-footer > span:first-child {
-  font-size: 9px;
+  font-size: 0.5625rem;
   letter-spacing: 2px;
 }
 .workspace-footer > button {
@@ -721,7 +724,7 @@ hr {
   min-height: 610px;
   border: 0;
   padding: 24px 0;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 2.15;
   resize: vertical;
   background: repeating-linear-gradient(
@@ -733,7 +736,7 @@ hr {
   background-position: 0 25px;
 }
 .journal::placeholder {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .notes-layout aside {
   display: flex;
@@ -741,11 +744,11 @@ hr {
   gap: 24px;
 }
 .reflection label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.7;
 }
 .reflection textarea {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .wind-down {
   background: var(--rail);
@@ -755,7 +758,7 @@ hr {
   margin-bottom: 15px;
 }
 .wind-down p {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 .segmented {
@@ -766,7 +769,7 @@ hr {
 }
 .segmented button {
   padding: 7px 18px;
-  font-size: 12px;
+  font-size: 0.75rem;
   border-radius: 7px;
   min-height: 36px;
 }
@@ -786,7 +789,7 @@ hr {
 .search-input input {
   border: 0;
   background: transparent;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .calendar-grid {
   display: grid;
@@ -795,7 +798,7 @@ hr {
 }
 .calendar-grid > b {
   text-align: center;
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 500;
   color: var(--muted);
   padding: 12px;
@@ -814,13 +817,13 @@ hr {
   background: var(--soft);
 }
 .calendar-grid > button > strong {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 .calendar-count {
   display: flex;
   gap: 2px;
-  font-size: 9px;
+  font-size: 0.5625rem;
   align-items: center;
   color: var(--accent);
   margin-top: 7px;
@@ -832,7 +835,7 @@ hr {
   color: var(--gold);
 }
 .calendar-task-titles {
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--muted);
   margin-top: 8px;
 }
@@ -854,7 +857,7 @@ hr {
   padding: 16px 0;
   border-bottom: 1px solid var(--line);
   width: 100%;
-  font-size: 13px;
+  font-size: 0.8125rem;
   overflow-wrap: anywhere;
 }
 .search-results small {
@@ -872,7 +875,7 @@ hr {
   margin-bottom: 20px;
 }
 .dashboard-controls > span {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 .metrics {
@@ -882,12 +885,12 @@ hr {
   margin-bottom: 24px;
 }
 .metric span {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--muted);
 }
 .metric strong {
   display: block;
-  font-size: 34px;
+  font-size: 2.125rem;
   font-weight: 400;
   margin-top: 18px;
 }
@@ -915,7 +918,7 @@ hr {
   height: 100%;
   justify-content: flex-end;
   gap: 8px;
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--muted);
 }
 .bar-track {
@@ -934,15 +937,15 @@ hr {
   border-radius: 5px;
 }
 .bar-column small {
-  font-size: 9px;
+  font-size: 0.5625rem;
 }
 .large-number {
-  font-size: 35px;
+  font-size: 2.1875rem;
   font-weight: 400;
   display: block;
 }
 .large-number small {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 progress {
   width: 100%;
@@ -954,7 +957,7 @@ progress {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
@@ -965,12 +968,12 @@ progress {
   align-items: start;
 }
 .settings-grid .card > p {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .module-setting {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: 0.8125rem;
   gap: 5px;
   border-bottom: 1px solid var(--line);
   padding: 4px 0;
@@ -1014,7 +1017,7 @@ progress {
 }
 .dialog-heading h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 .form-columns {
   display: grid;
@@ -1046,7 +1049,7 @@ progress {
   padding: 14px;
   max-height: 280px;
   overflow: auto;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.8;
 }
 .conflict-entry {
@@ -1054,7 +1057,7 @@ progress {
   padding: 20px 0;
 }
 .conflict-entry h4 {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 .welcome {
@@ -1076,13 +1079,13 @@ progress {
 }
 .welcome-grid h1 {
   font-family: Georgia, "Noto Serif CJK SC", serif;
-  font-size: clamp(38px, 5vw, 68px);
+  font-size: clamp(2.375rem, calc(5vw * var(--font-scale, 1)), 4.25rem);
   line-height: 1.15;
   letter-spacing: -2px;
 }
 .lead {
   color: var(--muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   max-width: 360px;
 }
 .welcome-art {
@@ -1099,7 +1102,7 @@ progress {
   color: var(--gold);
 }
 .welcome-art span {
-  font-size: 9px;
+  font-size: 0.5625rem;
   letter-spacing: 3px;
   color: var(--accent);
 }
@@ -1116,16 +1119,16 @@ progress {
   margin-top: 12px;
 }
 .fine-print {
-  font-size: 10px !important;
+  font-size: 0.625rem !important;
   color: var(--muted);
   line-height: 1.8;
   margin: 20px 0 0;
 }
 .auth-card .notice {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .auth-card h2 {
-  font-size: 21px;
+  font-size: 1.3125rem;
   font-weight: 500;
 }
 #print-pages {
@@ -1206,14 +1209,14 @@ progress {
     padding: 30px 14px;
   }
   .brand {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
   .sidebar-tagline {
-    font-size: 10px;
+    font-size: 0.625rem;
   }
   .nav-item {
     padding: 10px;
-    font-size: 12px;
+    font-size: 0.75rem;
     gap: 10px;
   }
   .topbar {
@@ -1245,7 +1248,7 @@ progress {
     flex-wrap: wrap;
   }
   .summary-strip b {
-    font-size: 15px;
+    font-size: 0.9375rem;
   }
   .summary-strip button {
     margin-left: 0;
@@ -1263,14 +1266,14 @@ progress {
     width: 10px;
   }
   .habit-row {
-    font-size: 10px;
+    font-size: 0.625rem;
     gap: 3px;
   }
   .habit-row select {
     width: 65px;
   }
   .habit-panel h2 {
-    font-size: 17px;
+    font-size: 1.0625rem;
   }
 }
 @media (max-width: 767px) {
@@ -1308,10 +1311,10 @@ progress {
   }
   .topbar-actions .quiet {
     padding: 8px;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .sync-status {
-    font-size: 9px;
+    font-size: 0.5625rem;
     max-width: 190px;
     gap: 5px;
   }
@@ -1332,14 +1335,14 @@ progress {
     margin-bottom: 20px;
   }
   .page-heading h1 {
-    font-size: 32px;
+    font-size: 2rem;
   }
   .eyebrow {
-    font-size: 9px;
+    font-size: 0.5625rem;
     margin-bottom: 13px;
   }
   .page-heading p {
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
   .date-controls {
     width: 100%;
@@ -1349,10 +1352,10 @@ progress {
   }
   .date-controls input {
     width: 143px;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .date-controls .quiet {
-    font-size: 12px;
+    font-size: 0.75rem;
     margin-left: auto;
   }
   .planner-layout {
@@ -1366,21 +1369,21 @@ progress {
     padding: 20px;
   }
   .section-title h2 {
-    font-size: 15px;
+    font-size: 0.9375rem;
   }
   .summary-strip {
-    font-size: 10px;
+    font-size: 0.625rem;
     gap: 12px;
     margin-bottom: 20px;
     padding: 12px 0;
     flex-wrap: wrap;
   }
   .summary-strip b {
-    font-size: 15px;
+    font-size: 0.9375rem;
   }
   .summary-strip button {
     min-height: 30px;
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
   .right-rail {
     display: grid;
@@ -1388,11 +1391,11 @@ progress {
     gap: 18px;
   }
   .habit-row {
-    font-size: 13px;
+    font-size: 0.8125rem;
     padding: 10px 0;
   }
   .habit-row select {
-    font-size: 12px;
+    font-size: 0.75rem;
     width: 90px;
     min-height: 44px;
   }
@@ -1400,16 +1403,16 @@ progress {
     padding: 24px;
   }
   .habit-panel .module-hint {
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .card {
     border-radius: 13px;
   }
   .task-content strong {
-    font-size: 14px;
+    font-size: 0.875rem;
   }
   .task-content span {
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
   .check-button {
     flex-basis: 24px;
@@ -1443,7 +1446,7 @@ progress {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    font-size: 9px;
+    font-size: 0.5625rem;
     padding: 8px 3px;
     flex: 1;
     border-radius: 8px;
@@ -1460,7 +1463,7 @@ progress {
     padding: 15px 20px;
   }
   .local-banner {
-    font-size: 10px;
+    font-size: 0.625rem;
     align-items: flex-start;
   }
   .local-banner svg {
@@ -1476,19 +1479,19 @@ progress {
   }
   .journal {
     min-height: 400px;
-    font-size: 16px;
+    font-size: 1rem;
   }
   .notes-layout aside {
     display: flex;
   }
   .reflection label {
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
   .reflection textarea {
-    font-size: 16px;
+    font-size: 1rem;
   }
   .wind-down p {
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
   .calendar-card {
     padding: 16px;
@@ -1498,14 +1501,14 @@ progress {
   }
   .calendar-grid > b {
     padding: 10px 0;
-    font-size: 9px;
+    font-size: 0.5625rem;
   }
   .calendar-grid > button {
     min-height: 69px;
     padding: 9px 5px;
   }
   .calendar-grid > button > strong {
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .calendar-grid > button > svg {
     top: 10px;
@@ -1513,7 +1516,7 @@ progress {
     width: 10px;
   }
   .calendar-count {
-    font-size: 9px;
+    font-size: 0.5625rem;
     margin-top: 8px;
   }
   .calendar-task-titles {
@@ -1523,10 +1526,10 @@ progress {
     min-height: 150px;
   }
   .search-input input {
-    font-size: 16px;
+    font-size: 1rem;
   }
   .search-results button {
-    font-size: 13px;
+    font-size: 0.8125rem;
     gap: 10px;
   }
   .metrics {
@@ -1536,13 +1539,13 @@ progress {
     padding: 18px;
   }
   .metric strong {
-    font-size: 31px;
+    font-size: 1.9375rem;
   }
   .dashboard-controls {
     gap: 7px;
   }
   .dashboard-controls > span {
-    font-size: 10px;
+    font-size: 0.625rem;
   }
   .segmented button {
     padding: 6px 14px;
@@ -1562,7 +1565,7 @@ progress {
   }
   .settings-grid input,
   .settings-grid select {
-    font-size: 16px;
+    font-size: 1rem;
   }
   .dialog {
     padding: 22px;
@@ -1572,10 +1575,10 @@ progress {
   .dialog input,
   .dialog textarea,
   .dialog select {
-    font-size: 16px;
+    font-size: 1rem;
   }
   .dialog-heading h2 {
-    font-size: 17px;
+    font-size: 1.0625rem;
   }
   .dialog-actions {
     flex-wrap: wrap;
@@ -1593,7 +1596,7 @@ progress {
     margin-top: 55px;
   }
   .welcome-grid h1 {
-    font-size: 47px;
+    font-size: 2.9375rem;
     max-width: 500px;
   }
   .welcome-art {
@@ -1603,10 +1606,10 @@ progress {
     padding: 24px;
   }
   .auth-card input {
-    font-size: 16px;
+    font-size: 1rem;
   }
   .welcome .brand {
-    font-size: 27px;
+    font-size: 1.6875rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1758,4 +1761,321 @@ progress {
 }
 #daily-habits {
   scroll-margin-top: 84px;
+}
+
+/* Shared manual-label controls and typography. No timestamps style entries. */
+.entry-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.entry-controls fieldset,
+.color-selector {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  margin: 0;
+  padding: 10px;
+  min-width: 0;
+}
+.entry-controls legend,
+.color-selector legend {
+  font-size: 0.8125rem;
+  padding: 0 5px;
+}
+.entry-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.entry-options label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0;
+  min-height: 44px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.entry-options input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+.strike-toggle[aria-pressed="true"],
+.font-presets [aria-pressed="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.entry-legend {
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 16px;
+  margin-bottom: 20px;
+}
+.entry-legend > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 25px;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.legend-item i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.entry-legend > small {
+  display: block;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.font-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.font-preview {
+  padding: 18px;
+  background: var(--rail);
+  border-radius: 9px;
+}
+.font-preview h3 {
+  margin-top: 0;
+}
+.font-preview p {
+  margin-bottom: 8px;
+}
+.color-selector {
+  margin: 20px 0;
+}
+.color-selector p {
+  font-size: 0.8125rem;
+}
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  gap: 8px;
+}
+.color-swatch {
+  min-height: 44px;
+  border: 2px solid transparent;
+  border-radius: 9px;
+}
+.color-swatch[aria-pressed="true"] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+.color-swatch span {
+  color: white;
+  text-shadow: 0 1px 3px black;
+  font-size: 1.25rem;
+}
+.custom-color-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+input[type="color"] {
+  min-height: 44px;
+  padding: 4px;
+}
+.color-previews {
+  display: grid;
+  gap: 12px;
+}
+.color-preview {
+  border-radius: 9px;
+  padding: 16px;
+  line-height: 1.8;
+}
+.color-preview.light {
+  background: #fff;
+  color: #303b32;
+  color-scheme: light;
+  border: 1px solid #e6e8df;
+}
+.color-preview.dark {
+  background: #252e28;
+  color: #e5e9e0;
+  color-scheme: dark;
+}
+.color-preview h4 {
+  margin-bottom: 12px;
+}
+.color-preview p {
+  margin: 8px 0;
+}
+.contrast-warning {
+  display: block;
+  margin-bottom: 12px;
+}
+.note-paragraph {
+  border-block-start: 1px solid var(--line);
+  padding: 8px 0 18px;
+}
+.journal.paragraph-input {
+  min-height: 110px;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--line);
+  padding: 12px;
+}
+.task-description {
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  margin: 6px 0;
+}
+.sidebar {
+  overflow-y: auto;
+}
+.brand,
+.nav-item,
+h1,
+h2,
+h3,
+.habit-row,
+.module-setting {
+  overflow-wrap: anywhere;
+}
+.topbar {
+  min-height: 79px;
+  height: auto;
+  padding-block: 10px;
+}
+.date-controls {
+  flex-wrap: wrap;
+}
+.date-controls input {
+  width: max(143px, 10rem);
+}
+.habit-row {
+  flex-wrap: wrap;
+}
+.habit-row select {
+  width: auto;
+  min-width: 5rem;
+  max-width: 100%;
+}
+.section-title {
+  min-width: 0;
+}
+.section-title h2 {
+  text-align: left;
+}
+.section-title > svg,
+.module-marker,
+.brand svg {
+  flex-shrink: 0;
+}
+.task-list .icon-button {
+  flex-shrink: 0;
+}
+@media (max-width: 1199px) {
+  .planner-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .right-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .topbar {
+    min-height: 64px;
+  }
+  .bottom-nav .nav-item {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+  .bottom-nav {
+    align-items: stretch;
+  }
+  .workspace {
+    padding-bottom: calc(125px + env(safe-area-inset-bottom));
+  }
+  .entry-legend > div {
+    flex-direction: column;
+  }
+  .metrics,
+  .form-columns {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  }
+  .summary-strip {
+    gap: 8px;
+  }
+  .journal.paragraph-input {
+    font-size: max(16px, 1rem);
+  }
+}
+@media print {
+  #print-pages {
+    --ink: #000;
+    --muted: #333;
+    --line: #ccc;
+    --print-scale: 1;
+  }
+  #print-pages .entry-legend {
+    margin: 8pt 0 12pt;
+    padding-bottom: 8pt;
+  }
+  #print-pages .legend-item,
+  #print-pages .entry-legend small {
+    font-size: 8pt;
+  }
+  #print-pages .print-task {
+    font-size: calc(9pt * var(--print-scale));
+  }
+  #print-pages .print-task small {
+    font-size: calc(8pt * var(--print-scale));
+  }
+  #print-pages .print-task p {
+    font-size: inherit;
+  }
+  #print-pages .print-journal {
+    font-size: calc(11pt * var(--print-scale));
+  }
+  .print-journal p {
+    white-space: pre-wrap;
+    margin-bottom: 12pt;
+  }
+  .print-label {
+    display: block;
+    font-size: 8pt;
+    text-decoration: none;
+    color: #333;
+  }
+  #print-pages.print-bw,
+  #print-pages.print-bw * {
+    color: #000 !important;
+  }
+  #print-pages.print-bw .legend-item i {
+    background: #000 !important;
+  }
+  #print-pages .print-module-grid {
+    display: block;
+    columns: 2;
+    column-gap: 18pt;
+  }
+  #print-pages .print-module-grid > section {
+    break-inside: auto;
+    margin-bottom: 12pt;
+  }
+  #print-pages .print-task {
+    break-inside: auto;
+  }
+  #print-pages .print-module-grid h2 {
+    break-after: avoid;
+  }
 }

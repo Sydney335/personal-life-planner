@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cloudFor, supabase } from "./cloud";
 import { Store } from "./store";
 import { SyncEngine, type SyncStatus } from "./sync";
-import { type LocalRecord, type RecordValue } from "./domain";
+import { type LocalRecord, type RecordValue, type Note } from "./domain";
 export function usePlanner(owner: string) {
   const store = useMemo(() => new Store(owner), [owner]);
   const [records, setRecords] = useState<LocalRecord[]>([]);
@@ -118,7 +118,7 @@ export function usePlanner(owner: string) {
   const resolve = async (
     id: string,
     choice: "local" | "remote" | "merge",
-    text?: string,
+    text?: string | Note,
   ) => {
     await queue.current;
     if (unsaved.current.size)

@@ -51,6 +51,17 @@ import {
   type Settings,
   type Task,
 } from "./domain";
+import {
+  EntryControls,
+  EntryLegend,
+  TypographySettings,
+} from "./EntryPresentation";
+import {
+  combinedNote,
+  entryStyle,
+  noteParagraphs,
+  withParagraphs,
+} from "./entryFormatting";
 import { tr, type TextKey } from "./i18n";
 import { usePlanner } from "./usePlanner";
 import { PrintPages, type PrintOptions } from "./PrintPages";
@@ -376,8 +387,19 @@ function Workspace({
   const settingsRecord = active.find((r) => r.kind === "settings");
   const settings: Settings =
     settingsRecord?.kind === "settings"
-      ? settingsRecord.payload
+      ? { ...settingsDefaults, ...settingsRecord.payload }
       : settingsDefaults;
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--font-scale", String(settings.fontScale));
+    root.style.setProperty("--previous-day-color", settings.previousDayColor);
+    root.style.setProperty("--same-day-color", settings.sameDayColor);
+    return () => {
+      root.style.removeProperty("--font-scale");
+      root.style.removeProperty("--previous-day-color");
+      root.style.removeProperty("--same-day-color");
+    };
+  }, [settings.fontScale, settings.previousDayColor, settings.sameDayColor]);
   const saveSettings = (s: Settings) =>
     edit({
       id: stableId("settings"),
@@ -566,6 +588,9 @@ function Workspace({
                 </button>
               </div>
             </div>
+            {(view === "today" || view === "notes") && (
+              <EntryLegend day={day} lang={lang} settings={settings} t={t} />
+            )}
             {owner === "local-device" && (
               <div className="local-banner">
                 <CloudOff size={17} />
@@ -971,8 +996,15 @@ function TaskList({
           >
             {r.payload.completed && <Check size={14} />}
           </button>
-          <button className="task-content" onClick={() => onEdit(r)}>
+          <button
+            className="task-content"
+            style={entryStyle(r.payload)}
+            onClick={() => onEdit(r)}
+          >
             <strong>{r.payload.title}</strong>
+            {r.payload.notes && (
+              <p className="task-description">{r.payload.notes}</p>
+            )}
             <span>
               {r.payload.start &&
                 `${r.payload.start}${r.payload.end ? " – " + r.payload.end : ""}`}
@@ -990,6 +1022,30 @@ function TaskList({
               {r.conflict && ` · ${t("conflict")}`}
             </span>
           </button>
+          {r.payload.classification === "previousDay" && (
+            <button
+              className="icon-button"
+              aria-label={`${t("strikethrough")}: ${r.payload.title}`}
+              aria-pressed={r.payload.strikethrough}
+              onClick={() =>
+                edit({
+                  ...valueOf(r),
+                  kind: "task",
+                  payload: {
+                    ...r.payload,
+                    strikethrough: !r.payload.strikethrough,
+                  },
+                })
+              }
+            >
+              <span
+                aria-hidden="true"
+                style={{ textDecoration: "line-through" }}
+              >
+                S
+              </span>
+            </button>
+          )}
           <div className="reorder">
             <GripVertical size={13} />
             <button
@@ -1033,7 +1089,7 @@ function TaskDialog({
 }) {
   const [task, setTask] = useState<Task>(
     initial?.kind === "task"
-      ? initial.payload
+      ? taskSchema.parse(initial.payload)
       : {
           ...taskSchema.parse({ title: "New", category, order: Date.now() }),
           title: "",
@@ -1073,10 +1129,18 @@ function TaskDialog({
       onClose={onClose}
     >
       <form onSubmit={submit} className="task-form">
+        <EntryControls
+          t={t}
+          classification={task.classification}
+          strikethrough={task.strikethrough}
+          onChange={patch}
+        />
+        <small>{t("strikeHint")}</small>
         <label>
           {t("title")}
           <input
             ref={input}
+            style={entryStyle(task)}
             value={task.title}
             required
             maxLength={500}
@@ -1246,6 +1310,7 @@ function TaskDialog({
             aria-label={t("details")}
             rows={3}
             value={task.notes}
+            style={entryStyle(task)}
             maxLength={20000}
             onChange={(e) => patch({ notes: e.target.value })}
           />
@@ -1369,7 +1434,11 @@ function Carry({
       <h2>{t("carry")}</h2>
       {tasks.map((r) => (
         <div key={r.id}>
-          <button className="quiet" onClick={() => onEdit(r)}>
+          <button
+            className="quiet"
+            style={r.kind === "task" ? entryStyle(r.payload) : undefined}
+            onClick={() => onEdit(r)}
+          >
             {r.kind === "task" ? r.payload.title : ""}
           </button>
           <small>{r.day}</small>
@@ -1382,6 +1451,43 @@ function Carry({
         </div>
       ))}
     </section>
+  );
+}
+function ParagraphInput({
+  label,
+  text,
+  style,
+  placeholder,
+  maxLength,
+  onChange,
+}: {
+  label: string;
+  text: string;
+  style: ReturnType<typeof entryStyle>;
+  placeholder: string;
+  maxLength: number;
+  onChange: (s: string) => void;
+}) {
+  const input = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = input.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight + 4}px`;
+    }
+  }, [text]);
+  return (
+    <textarea
+      ref={input}
+      aria-label={label}
+      className="journal paragraph-input"
+      rows={3}
+      style={style}
+      placeholder={placeholder}
+      maxLength={Math.max(0, maxLength)}
+      value={text}
+      onChange={(e) => onChange(e.target.value)}
+    />
   );
 }
 function Notes({
@@ -1418,17 +1524,71 @@ function Notes({
           </h2>
           <small>{note.text.length.toLocaleString()}</small>
         </div>
-        <label className="sr-only" htmlFor="daily-note">
-          {t("notes")}
-        </label>
-        <textarea
-          id="daily-note"
-          className="journal"
-          placeholder={t("noteHint")}
-          maxLength={200000}
-          value={note.text}
-          onChange={(e) => patch({ text: e.target.value })}
-        />
+        <p className="subtle">{t("notesFormattingHint")}</p>
+        {noteParagraphs(note).map((paragraph, index) => (
+          <section
+            className="note-paragraph"
+            key={paragraph.id}
+            aria-label={`${t("paragraph")} ${index + 1}`}
+          >
+            <EntryControls
+              t={t}
+              classification={paragraph.classification}
+              strikethrough={paragraph.strikethrough}
+              onChange={(formatting) =>
+                patch(
+                  withParagraphs(
+                    note,
+                    noteParagraphs(note).map((p) =>
+                      p.id === paragraph.id ? { ...p, ...formatting } : p,
+                    ),
+                  ),
+                )
+              }
+            />
+            <ParagraphInput
+              label={
+                index === 0 ? t("notes") : `${t("paragraph")} ${index + 1}`
+              }
+              text={paragraph.text}
+              style={entryStyle(paragraph)}
+              placeholder={t("noteHint")}
+              maxLength={200000 - (note.text.length - paragraph.text.length)}
+              onChange={(text) =>
+                patch(
+                  withParagraphs(
+                    note,
+                    noteParagraphs(note).map((p) =>
+                      p.id === paragraph.id ? { ...p, text } : p,
+                    ),
+                  ),
+                )
+              }
+            />
+          </section>
+        ))}
+        <button
+          className="secondary"
+          disabled={
+            note.text.length > 199998 || noteParagraphs(note).length >= 10000
+          }
+          onClick={() =>
+            patch(
+              withParagraphs(note, [
+                ...noteParagraphs(note),
+                {
+                  id: crypto.randomUUID(),
+                  text: "",
+                  classification: "unmarked",
+                  strikethrough: false,
+                },
+              ]),
+            )
+          }
+        >
+          <Plus size={18} />
+          {t("addParagraph")}
+        </button>
       </section>
       <aside>
         <section className="card reflection">
@@ -1578,11 +1738,19 @@ function CalendarView({
                 }
               >
                 <small>{r.day}</small>
-                <span>
+                <span
+                  style={r.kind === "task" ? entryStyle(r.payload) : undefined}
+                >
                   {r.kind === "task"
                     ? r.payload.title
                     : r.kind === "note"
-                      ? r.payload.text.slice(0, 150)
+                      ? noteParagraphs(r.payload)
+                          .slice(0, 3)
+                          .map((p) => (
+                            <span key={p.id} style={entryStyle(p)}>
+                              {p.text.slice(0, 150)}{" "}
+                            </span>
+                          ))
                       : r.kind === "habit"
                         ? r.payload.title
                         : ""}
@@ -1626,7 +1794,12 @@ function CalendarView({
                 )}
                 <div className="calendar-task-titles">
                   {tasks.slice(0, 3).map((r) => (
-                    <span key={r.id}>
+                    <span
+                      key={r.id}
+                      style={
+                        r.kind === "task" ? entryStyle(r.payload) : undefined
+                      }
+                    >
                       {r.kind === "task" ? r.payload.title : ""}
                     </span>
                   ))}
@@ -1883,6 +2056,7 @@ function SettingsPanel({
   const [habit, setHabit] = useState("");
   const [scope, setScope] = useState<PrintOptions["scope"]>("daily");
   const [blank, setBlank] = useState(false);
+  const [printMode, setPrintMode] = useState<"color" | "bw">("color");
   const [printLang, setPrintLang] = useState<Lang>(lang);
   const file = useRef<HTMLInputElement>(null);
   const download = async () => {
@@ -1928,6 +2102,11 @@ function SettingsPanel({
   };
   return (
     <div className="settings-grid">
+      <TypographySettings
+        settings={settings}
+        saveSettings={saveSettings}
+        t={t}
+      />
       <section className="card">
         <h2>{t("account")}</h2>
         <p className="notice">
@@ -2110,6 +2289,17 @@ function SettingsPanel({
             <option value="zh">中文</option>
           </select>
         </label>
+        <label>
+          {t("printMode")}
+          <select
+            aria-label={t("printMode")}
+            value={printMode}
+            onChange={(e) => setPrintMode(e.target.value as "color" | "bw")}
+          >
+            <option value="color">{t("colorPrint")}</option>
+            <option value="bw">{t("bwPrint")}</option>
+          </select>
+        </label>
         <label className="checkbox-label">
           <input
             type="checkbox"
@@ -2121,7 +2311,13 @@ function SettingsPanel({
         <button
           className="primary"
           onClick={() =>
-            onPrint({ scope, blank, lang: printLang, stamp: Date.now() })
+            onPrint({
+              scope,
+              blank,
+              lang: printLang,
+              mode: printMode,
+              stamp: Date.now(),
+            })
           }
         >
           <Printer size={17} />
@@ -2142,11 +2338,19 @@ function ConflictDialog({
   onResolve: (
     id: string,
     choice: "local" | "remote" | "merge",
-    text?: string,
+    text?: string | Note,
   ) => Promise<void>;
   onClose: () => void;
 }) {
-  const [text, setText] = useState<Record<string, string>>({});
+  const [drafts, setDrafts] = useState<Record<string, Note>>(() =>
+    Object.fromEntries(
+      records.flatMap((r) =>
+        r.kind === "note" && r.conflict?.kind === "note"
+          ? [[r.id, combinedNote(r.payload, r.conflict.payload)]]
+          : [],
+      ),
+    ),
+  );
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const resolve = async (
@@ -2158,10 +2362,7 @@ function ConflictDialog({
       await onResolve(
         r.id,
         choice,
-        text[r.id] ??
-          (r.kind === "note" && r.conflict?.kind === "note"
-            ? `${r.payload.text}\n\n──── ${t("remoteVersion")} ────\n\n${r.conflict.payload.text}`
-            : undefined),
+        choice === "merge" ? drafts[r.id] : undefined,
       );
     } catch (err) {
       setError(String(err));
@@ -2222,20 +2423,52 @@ function ConflictDialog({
             </div>
           </div>
           {r.kind === "note" && r.conflict?.kind === "note" && (
-            <label>
-              {t("merge")}
-              <textarea
-                rows={8}
-                maxLength={200000}
-                value={
-                  text[r.id] ??
-                  `${r.payload.text}\n\n──── ${t("remoteVersion")} ────\n\n${r.conflict.payload.text}`
-                }
-                onChange={(e) => setText({ ...text, [r.id]: e.target.value })}
-              />
-              <small>
-                {t("reflection")}: {t("keepLocal")}
-              </small>
+            <div>
+              <p>{t("mergeFormattingHint")}</p>
+              {drafts[r.id]?.paragraphs.map((p, index) => (
+                <section
+                  className="note-paragraph"
+                  key={p.id}
+                  aria-label={`${t("merge")} · ${t("paragraph")} ${index + 1}`}
+                >
+                  <EntryControls
+                    t={t}
+                    classification={p.classification}
+                    strikethrough={p.strikethrough}
+                    onChange={(formatting) =>
+                      setDrafts((prev) => ({
+                        ...prev,
+                        [r.id]: withParagraphs(
+                          prev[r.id],
+                          prev[r.id].paragraphs.map((item) =>
+                            item.id === p.id
+                              ? { ...item, ...formatting }
+                              : item,
+                          ),
+                        ),
+                      }))
+                    }
+                  />
+                  <ParagraphInput
+                    label={`${t("merge")} · ${t("paragraph")} ${index + 1}`}
+                    text={p.text}
+                    style={entryStyle(p)}
+                    placeholder={t("noteHint")}
+                    maxLength={200000}
+                    onChange={(text) =>
+                      setDrafts((prev) => ({
+                        ...prev,
+                        [r.id]: withParagraphs(
+                          prev[r.id],
+                          prev[r.id].paragraphs.map((item) =>
+                            item.id === p.id ? { ...item, text } : item,
+                          ),
+                        ),
+                      }))
+                    }
+                  />
+                </section>
+              ))}
               <button
                 disabled={busy}
                 className="primary"
@@ -2243,7 +2476,7 @@ function ConflictDialog({
               >
                 {t("merge")}
               </button>
-            </label>
+            </div>
           )}
         </section>
       ))}
