@@ -523,3 +523,20 @@ describe("formatting and typography synchronization contract", () => {
     });
   });
 });
+
+it("pauses new cloud work during activation and resumes the unchanged durable queue on failure", async () => {
+  await a.edit(note("Pending while offline"));
+  const sync = engine(a);
+  const before = await a.all();
+  const resume = sync.pause();
+  await sync.sync();
+  expect(sync.busy).toBe(false);
+  expect(cloud.records.size).toBe(0);
+  expect(await a.all()).toEqual(before);
+  resume();
+  await sync.sync();
+  expect((await a.get(id))?.pending).toBe(false);
+  expect(cloud.records.get(id)?.payload).toMatchObject({
+    text: "Pending while offline",
+  });
+});

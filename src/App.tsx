@@ -65,6 +65,8 @@ import {
 import { tr, type TextKey } from "./i18n";
 import { usePlanner } from "./usePlanner";
 import { PrintPages, type PrintOptions } from "./PrintPages";
+import { UpdateNotice, UpdateAbout } from "./UpdateFeedback";
+import { updates } from "./updates";
 type View = "today" | "notes" | "calendar" | "weekly" | "settings";
 type T = (key: TextKey) => string;
 const views = [
@@ -216,6 +218,10 @@ function Auth({
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  useEffect(
+    () => updates.setGuard(async () => !busy && !email && !password),
+    [busy, email, password],
+  );
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!supabase) return;
@@ -351,6 +357,7 @@ function Auth({
           <p className="fine-print">{t("privacyText")}</p>
         </section>
       </main>
+      <UpdateNotice t={t} />
     </div>
   );
 }
@@ -373,6 +380,16 @@ function Workspace({
 }) {
   const planner = usePlanner(owner);
   const { records, edit, status, error, loaded } = planner;
+  const updateGuard = useRef(planner.canUpdate);
+  updateGuard.current = planner.canUpdate;
+  useEffect(
+    () =>
+      updates.setGuard(
+        (automatic) => updateGuard.current(automatic),
+        () => planner.pauseSync(),
+      ),
+    [],
+  );
   const [day, setDay] = useState(localDay());
   const [view, setView] = useState<View>("today");
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -475,6 +492,7 @@ function Workspace({
   ).length;
   return (
     <>
+      <UpdateNotice t={t} />
       <div className="app-shell">
         <aside className={`sidebar ${mobileMenu ? "is-open" : ""}`}>
           <div className="brand">
@@ -2102,6 +2120,7 @@ function SettingsPanel({
   };
   return (
     <div className="settings-grid">
+      <UpdateAbout t={t} />
       <TypographySettings
         settings={settings}
         saveSettings={saveSettings}
@@ -2210,6 +2229,7 @@ function SettingsPanel({
             <input
               maxLength={100}
               value={habit}
+              data-update-draft={!!habit}
               onChange={(e) => setHabit(e.target.value)}
             />
           </label>

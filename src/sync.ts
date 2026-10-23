@@ -4,6 +4,7 @@ export type SyncStatus =
   "saved" | "syncing" | "offline" | "error" | "conflict" | "local";
 export class SyncEngine {
   private running = false;
+  private paused = false;
   private again = false;
   private stopped = false;
   constructor(
@@ -13,11 +14,20 @@ export class SyncEngine {
     private changed: () => void,
     private online = () => navigator.onLine,
   ) {}
+  get busy() {
+    return this.running;
+  }
+  pause() {
+    this.paused = true;
+    return () => {
+      this.paused = false;
+    };
+  }
   stop() {
     this.stopped = true;
   }
   async sync(): Promise<void> {
-    if (this.stopped) return;
+    if (this.stopped || this.paused) return;
     if (this.running) {
       this.again = true;
       return;

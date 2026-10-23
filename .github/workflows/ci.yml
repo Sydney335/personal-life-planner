@@ -18,9 +18,12 @@ jobs:
       - name: Browser checks
         run: |
           CHROMIUM_PATH=$(node --input-type=module -e "import { chromium } from '@playwright/test'; process.stdout.write(chromium.executablePath())") npm run test:e2e
+          CHROMIUM_PATH=$(node --input-type=module -e "import { chromium } from '@playwright/test'; process.stdout.write(chromium.executablePath())") npm run test:pwa
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: browser-results
-          path: test-results/
+          path: |
+            test-results/
+            pwa-test-results/
           retention-days: 7
