@@ -1,17 +1,21 @@
 import {
   categories,
   noteDefaults,
+  settingsDefaults,
   parseDay,
   weekDays,
   type Lang,
   type LocalRecord,
 } from "./domain";
+import { EntryLegend } from "./EntryPresentation";
+import { entryStyle, noteParagraphs } from "./entryFormatting";
 import { tr } from "./i18n";
 export interface PrintOptions {
   scope: "daily" | "plannerOnly" | "notesOnly" | "wholeWeek";
   blank: boolean;
   lang: Lang;
   stamp: number;
+  mode?: "color" | "bw";
 }
 export function PrintPages({
   day,
@@ -25,9 +29,28 @@ export function PrintPages({
 }) {
   const lang = options.lang;
   const t = (key: Parameters<typeof tr>[1]) => tr(lang, key);
+  const settingsRecord = records.find((r) => r.kind === "settings");
+  const settings =
+    settingsRecord?.kind === "settings"
+      ? { ...settingsDefaults, ...settingsRecord.payload }
+      : settingsDefaults;
+  const printScale = options.blank
+    ? 1
+    : Math.min(1.3, Math.max(0.9, settings.fontScale));
   const days = options.scope === "wholeWeek" ? weekDays(day) : [day];
   return (
-    <div id="print-pages" lang={lang === "zh" ? "zh-CN" : "en"}>
+    <div
+      id="print-pages"
+      className={options.mode === "bw" ? "print-bw" : "print-color"}
+      lang={lang === "zh" ? "zh-CN" : "en"}
+      style={
+        {
+          "--print-scale": printScale,
+          "--previous-day-color": settings.previousDayColor,
+          "--same-day-color": settings.sameDayColor,
+        } as import("react").CSSProperties
+      }
+    >
       {days.map((d) => {
         const daily = options.blank ? [] : records.filter((r) => r.day === d);
         const noteRecord = daily.find((r) => r.kind === "note");
@@ -45,6 +68,9 @@ export function PrintPages({
                     }).format(parseDay(d))}
                   </h1>
                 </header>
+                {!options.blank && (
+                  <EntryLegend day={d} lang={lang} settings={settings} t={t} />
+                )}
                 <div className="print-module-grid">
                   {categories.map((category) => (
                     <section key={category}>
@@ -59,25 +85,31 @@ export function PrintPages({
                           (r) =>
                             r.kind === "task" && (
                               <div className="print-task" key={r.id}>
-                                <b>
-                                  {r.payload.completed ? "☑" : "☐"}{" "}
-                                  {r.payload.title}
-                                </b>
-                                <small>
-                                  {r.payload.start}
-                                  {r.payload.end && ` – ${r.payload.end}`}{" "}
-                                  {r.payload.location}{" "}
-                                  {r.payload.minutes > 0 &&
-                                    `${r.payload.minutes} ${t("minutes")}`}{" "}
-                                  {r.payload.actualMinutes > 0 &&
-                                    `${t("actual")}: ${r.payload.actualMinutes}`}{" "}
-                                  {r.payload.dueDate &&
-                                    `${t("due")}: ${r.payload.dueDate}`}{" "}
-                                  {r.payload.category === "meal" &&
-                                    t(r.payload.protein)}{" "}
-                                  {r.payload.activityType}
-                                </small>
-                                {r.payload.notes && <p>{r.payload.notes}</p>}
+                                <span className="print-label">
+                                  {t(r.payload.classification ?? "unmarked")}
+                                </span>
+                                <div style={entryStyle(r.payload)}>
+                                  <b>
+                                    {r.payload.completed ? "☑" : "☐"}{" "}
+                                    {r.payload.title}
+                                  </b>
+                                  <small>
+                                    {r.payload.start}
+                                    {r.payload.end &&
+                                      ` – ${r.payload.end}`}{" "}
+                                    {r.payload.location}{" "}
+                                    {r.payload.minutes > 0 &&
+                                      `${r.payload.minutes} ${t("minutes")}`}{" "}
+                                    {r.payload.actualMinutes > 0 &&
+                                      `${t("actual")}: ${r.payload.actualMinutes}`}{" "}
+                                    {r.payload.dueDate &&
+                                      `${t("due")}: ${r.payload.dueDate}`}{" "}
+                                    {r.payload.category === "meal" &&
+                                      t(r.payload.protein)}{" "}
+                                    {r.payload.activityType}
+                                  </small>
+                                  {r.payload.notes && <p>{r.payload.notes}</p>}
+                                </div>
                               </div>
                             ),
                         )}
@@ -139,8 +171,22 @@ export function PrintPages({
                   <span>DAYLIGHT · {t("notes")}</span>
                   <h1>{d}</h1>
                 </header>
+                {!options.blank && (
+                  <EntryLegend day={d} lang={lang} settings={settings} t={t} />
+                )}
                 <section className="print-journal">
-                  {note.text || <div className="handwriting-space" />}
+                  {note.text ? (
+                    noteParagraphs(note).map((p) => (
+                      <div key={p.id}>
+                        <span className="print-label">
+                          {t(p.classification)}
+                        </span>
+                        <p style={entryStyle(p)}>{p.text}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="handwriting-space" />
+                  )}
                 </section>
                 <section className="print-reflection">
                   {(
