@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "check": "tsc -b",
     "test:live": "playwright test --config playwright.live.config.ts",
-    "test:production": "playwright test --config playwright.production.config.ts"
+    "test:production": "playwright test --config playwright.production.config.ts",
+    "test:pwa": "playwright test --config playwright.updates.config.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",

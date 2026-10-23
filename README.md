@@ -154,3 +154,5 @@ PLANNER_BASE_URL=https://personal-life-planner-omega.vercel.app npm run test:liv
 Use two confirmed, disposable accounts and protected runtime secrets, never passwords in chat or committed files. The live suite writes test records on **2099-12-20** and leaves them for inspection. Without `PLANNER_BASE_URL`, it tests a local frontend against Supabase. Remote suites disable traces, screenshots and videos. Historical acceptance reports describe the conditions at their stated date; they are not a live uptime monitor or a claim that every real-device check has passed.
 
 Typography scaling, custom entry colors, fully manual entry-date labels, reversible strikethrough and paragraph-level Notes are documented in [the feature and setup guide (Simplified Chinese)](docs/ENTRY-PRESENTATION.zh-CN.md). Existing Supabase projects apply only the new `002_entry_presentation.sql` migration; do not rerun table creation.
+
+For automatic updates, cache policy, build setup, and Apple-device verification limits, see the [PWA update guide (Simplified Chinese)](docs/pwa-updates.zh-CN.md).

@@ -154,3 +154,5 @@ PLANNER_BASE_URL=https://personal-life-planner-omega.vercel.app npm run test:liv
 请使用两个已确认邮箱、只含测试数据的专用账号，并通过受保护的运行环境配置凭证，不要在聊天或已提交文件中存放密码。live 套件会写入 **2099-12-20** 的测试记录，保留供检查。没有设置 `PLANNER_BASE_URL` 时，它测试的是连接 Supabase 的本地前端。远端套件关闭 trace、截图和视频。历史验收报告描述其记录日期当时的情况，不是实时可用性监控，也不表示所有真实设备检查均已通过。
 
 字体大小、20 色预设色板、完全手动填写日期分类和段落删除线的使用与安全迁移，见 [功能与设置指南](docs/ENTRY-PRESENTATION.zh-CN.md)。
+
+自动更新、缓存策略、构建说明与 Apple 平台验证边界，请参见 [PWA 更新说明](docs/pwa-updates.zh-CN.md)。
