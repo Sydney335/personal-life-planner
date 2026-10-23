@@ -79,6 +79,8 @@ export type RemoteRecord = RecordValue & {
 };
 export type LocalRecord = RecordValue & {
   owner: string;
+  /** Local-only save provenance; never used as an authentication boundary. */
+  writer?: string;
   revision: number;
   mutation: string;
   pending: boolean;

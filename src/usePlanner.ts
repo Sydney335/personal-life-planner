@@ -11,7 +11,9 @@ export function usePlanner(owner: string) {
   const [loaded, setLoaded] = useState(false);
   const seq = useRef(0);
   const queue = useRef(Promise.resolve());
-  const unsaved = useRef(new Map<string, RecordValue>());
+  const unsaved = useRef(
+    new Map<string, { value: RecordValue; revision: number }>(),
+  );
   const reload = useCallback(async () => {
     const before = seq.current;
     const all = await store.all();
@@ -74,7 +76,10 @@ export function usePlanner(owner: string) {
   const edit = useCallback(
     (value: RecordValue) => {
       seq.current++;
-      unsaved.current.set(value.id, value);
+      unsaved.current.set(value.id, {
+        value,
+        revision: records.find((r) => r.id === value.id)?.revision ?? 0,
+      });
       setStatus(
         owner === "local-device"
           ? "local"
@@ -97,7 +102,7 @@ export function usePlanner(owner: string) {
       queue.current = queue.current
         .then(async () => {
           for (const [id, draft] of unsaved.current) {
-            await store.edit(draft);
+            await store.edit(draft.value, draft.revision);
             if (unsaved.current.get(id) === draft) unsaved.current.delete(id);
           }
           setError(false);
@@ -108,7 +113,7 @@ export function usePlanner(owner: string) {
         if (unsaved.current.size === 0) return engine.sync();
       });
     },
-    [owner, store, reload, engine],
+    [owner, store, reload, engine, records],
   );
   const resolve = async (
     id: string,

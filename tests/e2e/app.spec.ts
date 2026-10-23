@@ -240,3 +240,76 @@ test("a failed device write preserves the visible draft and can recover", async 
     "Do not lose this draft — recovered",
   );
 });
+
+test("typing from a stale rendered note preserves an unseen IDB revision", async ({
+  page,
+}) => {
+  await enter(page);
+  await navigate(page, "Notes");
+  await page.getByLabel("Notes", { exact: true }).fill("Original visible note");
+  await expect
+    .poll(async () =>
+      page.evaluate(async () => {
+        const request = indexedDB.open("daylight-v1");
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        return new Promise<boolean>((resolve, reject) => {
+          const tx = db.transaction("records", "readonly");
+          const result = tx.objectStore("records").getAll();
+          result.onsuccess = () =>
+            resolve(
+              result.result.some(
+                (r) =>
+                  r.kind === "note" &&
+                  r.payload.text === "Original visible note",
+              ),
+            );
+          result.onerror = () => reject(result.error);
+        });
+      }),
+    )
+    .toBe(true);
+  await page.evaluate(async () => {
+    const request = indexedDB.open("daylight-v1");
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("records", "readwrite");
+      const store = tx.objectStore("records");
+      const query = store.getAll();
+      query.onsuccess = () => {
+        const note = query.result.find((r) => r.kind === "note");
+        store.put({
+          ...note,
+          payload: { ...note.payload, text: "Unseen remote paragraph" },
+          revision: 1,
+          writer: undefined,
+          mutation: crypto.randomUUID(),
+          pending: false,
+        });
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+  await expect(page.getByLabel("Notes", { exact: true })).toHaveValue(
+    "Original visible note",
+  );
+  await page
+    .getByLabel("Notes", { exact: true })
+    .fill("Original visible note plus typing");
+  await page.getByRole("button", { name: /Review conflicts/ }).click();
+  await expect(
+    page.locator("dialog pre").filter({ hasText: "Unseen remote paragraph" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator("dialog pre")
+      .filter({ hasText: "Original visible note plus typing" }),
+  ).toBeVisible();
+});
