@@ -22,6 +22,8 @@ Source baseline: `origin/main` at `2fb4a24a19ab679538e0a24692ebf3c2d32cbb56` (me
 | Supabase 登录、真实同步与线上 RLS | 未执行                            | 当前环境没有项目公开配置、两个专用测试账号的安全凭证；测试预检明确停止，未伪装通过                                                        |
 | 安全配置源码审查                  | 已检查，线上生效未证实            | 源码有 RLS、账号约束、原子版本校验、私钥构建拦截及 Vercel CSP 等响应头；未读取线上数据库策略或部署设置                                    |
 
+**新 PR 的预览部署限制：** PR #2 已创建。Vercel 对修复分支报告失败：`GitHub couldn’t verify an account for the commit`，链接指向项目协作/提交身份排查。这是预览部署的账号校验阻塞，不是已观察到的应用编译错误；主分支的成功状态应与之分开。需要由项目所有者核对真实提交身份与 Vercel 项目访问权限，或审核后通过其正常发布流程部署；没有伪造作者身份、修改生产分支或关闭访问检查。新 PR 的 GitHub CI 在检查时仍运行中。
+
 **发现并修复的代码问题：** 远端数据刚写入 IndexedDB、React 还显示旧版本时，输入会采用尚未看见的新版本号，导致远端正文可被静默覆盖。已用回归测试在原代码复现失败。修复将编辑与界面实际看到的版本绑定，保留未看见的远端正文/删除标记为显式冲突，并区分同一会话自身的保存确认以避免误报。新增浏览器测试验证界面确实展示两份内容。
 
 另修复了验收工具：原 live 套件固定启动本地服务器，且手工创建的浏览器 context 未明确传入 baseURL。现在可指定真实 HTTPS 生产地址，检查登录请求的 Supabase 项目来源，并单独运行无账号的生产页面/安全头/PWA 检查。该工具修复不等于线上云同步已经通过。
@@ -37,6 +39,7 @@ Source baseline: `origin/main` at `2fb4a24a19ab679538e0a24692ebf3c2d32cbb56` (me
 - **Confirmed:** GitHub reports successful CI and Vercel deployment status for main. Baseline rerun: 21 logic/database + 7 browser tests passed. Fix branch: 24 logic/database + 8 browser tests passed. TypeScript/production build passed; dependency audit found zero vulnerabilities. Local checks cover three viewport sizes, bilingual UI, CRUD, Notes, IndexedDB/offline reopening, storage failure recovery, backup and actual 2-page/14-page US Letter PDFs.
 - **Issues:** reproduced a stale-editor/remote-refresh race that could silently replace remote note content. Fixed with explicit conflict preservation and regression tests. Fixed live-test targeting so a deployed HTTPS origin and the expected Supabase project can be checked.
 - **Blocked / untested:** production HTTP/page layout, deployed security headers/assets, hosted Auth/Realtime/RLS, actual Apple installation and Safari printing. curl hit proxy CONNECT 403; the browser stopped at an untrusted proxy certificate. No TLS checks were disabled. Automatic review rejected adding the environment CA to Chromium's persistent trust store because that expands trusted issuers without explicit authorization.
+- **New PR preview:** PR #2 is open, but Vercel rejects its preview with `GitHub couldn’t verify an account for the commit`; this is a commit-account/project access check, not an observed compile error. Main deployment status remains a separate successful observation. The project owner must resolve the identity/access condition or use the normal reviewed release process. PR CI was still running when checked.
 - **Still required:** network/trust configuration, secure disposable test-account credentials, and real iPhone/iPad/Mac checks using the linked checklist. Source inspection and PGlite RLS tests do not certify the deployed database. Deployment status does not certify application behavior.
 
 ## 安全配置下一轮测试 / Securely enable the next run
