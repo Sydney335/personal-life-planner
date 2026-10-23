@@ -1,97 +1,154 @@
-# Daylight — Personal Life Planner / 个人生活规划
+# Daylight — Personal Life Planner
 
-中文配置和部署说明：[docs/SETUP.zh-CN.md](docs/SETUP.zh-CN.md)。
+**English** | [简体中文](README.zh-CN.md)
 
-A working, bilingual, offline-capable React PWA for iPhone, iPad and Mac. Uses **Supabase Auth + PostgreSQL** for account-based cloud synchronization, and **IndexedDB** for durable local editing. No paid AI API, analytics, or third-party font CDN.
+A calm, bilingual planner for daily plans, habits and reflection. Daylight is a responsive Progressive Web App (PWA) for iPhone, iPad and Mac, with account-based cloud sync and local offline editing.
 
-**正式网址（用户提供）：https://personal-life-planner-omega.vercel.app 。GitHub 已报告 main 的 Vercel 部署成功，但本验收环境的联网/证书限制阻止线上功能验证。** 本地测试与线上未验收项目见 [上线验收报告 / Production acceptance](docs/PRODUCTION-ACCEPTANCE-2026-10-23.md)。Local mode is explicitly labeled and never pretends to synchronize.
+**[Open the app](https://personal-life-planner-omega.vercel.app)**
 
-## Run locally / 本地运行
+> A little structure. Room for life.
 
-Use Node **24 LTS** (22.12+ also supported).
+## What you can do
+
+| Feature               | Details                                                                                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Daily planner         | Study sessions, up to three main priorities through the add interface, alternative activities, meals, exercise, social time, leisure and to-dos |
+| Flexible records      | Planned times, actual study minutes, locations, notes, deadlines, priorities, completion, deferral and task ordering                            |
+| Habits                | Done, skipped or blank states, custom habits, and gentle movement and bedtime reminders without streak penalties                                |
+| Daily Notes           | Long-form writing, optional reflection prompts, an End My Day routine and a configurable bedtime, defaulting to 1:00 AM                         |
+| Calendar and overview | Month/week calendar, history search, weekly/monthly summaries, study hours and exercise goals                                                   |
+| Cross-device sync     | Supabase login, automatic saving, an offline queue, sync status and explicit conflict review                                                    |
+| Personalization       | English/Chinese interface, light/dark mode, collapsible modules and custom module order                                                         |
+| Paper planner         | Daily planner, Notes, combined daily or whole-week printing; filled or blank; English or Chinese; US Letter                                     |
+| Backups               | JSON export and validated, duplicate-safe import of missing records                                                                             |
+
+Meal statistics show **meal frequency by protein-source category**, not nutrient intake. Missing days remain unrecorded. Leisure is a normal part of the planner, not a reward for finishing work.
+
+## Start using Daylight
+
+1. Open the [app](https://personal-life-planner-omega.vercel.app) and create an account or sign in. Confirm your email if requested.
+2. Sign in with the **same account** on each device to synchronize planner data.
+3. Choose a date to plan today, edit an earlier day or prepare for tomorrow. Open **Notes** for writing and reflection.
+4. Use **Settings** for module order, exercise goals, custom habits, backups and print/PDF options. Switch the interface language and theme from the top bar.
+
+**Try on this device** is a separate, local-only mode. Its records do not sync or automatically move into an account. To transfer them, export a JSON backup and explicitly import it after signing in.
+
+## Install on your devices
+
+| Device        | How to use or install                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| iPhone / iPad | Open the HTTPS app URL in Safari → Share → Add to Home Screen. Launch the new icon and sign in.                               |
+| Mac           | Use a modern browser. In Safari on macOS Sonoma or later, choose File → Add to Dock. Chrome/Edge may offer an install option. |
+
+The interface uses bottom navigation on iPhone, a sidebar and split layouts on iPad, and a wider workspace on Mac. Tasks can be dragged within a module or moved with reorder buttons. **Alt+1–4** switches the main views where supported by the browser and keyboard.
+
+Installation depends on browser support. First access and first login require a connection. An already loaded production app can reopen offline, but device storage can be cleared or evicted; keep regular backups.
+
+## How saving and sync work
+
+- Edits save to **IndexedDB** on the device before uploading to the authenticated account.
+- Realtime updates, 15-second polling and synchronization on focus/reconnect keep active devices up to date.
+- The interface distinguishes cloud-saved, syncing, offline, sync-error and conflict states. A cloud-saved status does not mean every suspended device has already downloaded the change.
+- Conflicting edits preserve both versions for review. Notes can combine the main text; reflection fields retain the device version during a merge, so review those fields too. Accepted cloud revisions are retained in server history.
+- Mobile operating systems suspend background web apps. Synchronization resumes when the app is opened; guaranteed background sync is not provided.
+
+Reminders appear **inside the app**. System push notifications and reliable background alerts are not implemented.
+
+## Print, export and restore
+
+In **Settings → Print / PDF**, choose daily planner, Notes, a combined daily template or a whole week, then select a language and filled/blank content. Use the system print dialog with **US Letter**, 100% scale and browser headers/footers disabled. On iOS, share the print preview to save it to Files. Long content continues onto additional pages instead of being clipped; PDF saving options vary by platform.
+
+In **Settings → Backup & restore**, export JSON regularly and store it securely outside the device. Backups contain plaintext private records. Normal exports include current live records, not deleted-record markers or all server revision history. Resolve conflicts before export or separately copy both versions first.
+
+Import requires confirmation and adds **missing records only**. Repeated imports do not duplicate entries; existing or previously deleted records are not overwritten, and different versions are skipped and counted. This is a safe merge of missing records, not a destructive rollback. Cloud sync is not an independent backup.
+
+## Technology
+
+- **Frontend:** React, TypeScript and Vite
+- **Styling:** responsive CSS and system fonts; Lucide icons
+- **Identity and cloud data:** Supabase Auth, PostgreSQL and Realtime
+- **Local storage:** IndexedDB through `idb`
+- **Offline app shell:** a versioned service worker generated during the production build
+- **Hosting:** Vercel, or another HTTPS static host
+- **Tests:** Vitest, PGlite and Playwright
+
+No paid AI API, analytics service or external font CDN is required. Supabase Free and Vercel Hobby can be starting points for personal use, subject to their current terms, quotas, availability and backup policies.
+
+## Run locally
+
+Use **Node 24 LTS**; the repository pins it in `.nvmrc` and `.node-version`. Node 22.12+ is also supported by the package requirements.
 
 ```sh
+git clone https://github.com/Sydney335/personal-life-planner.git
+cd personal-life-planner
 npm ci
-cp .env.example .env.local
-# Optional for a local-only trial; fill in YOUR project's public values for cloud mode.
 npm run dev
 ```
 
-Open the development server shown in the terminal. Without cloud configuration, choose **Try on this device / 在本机体验**. This mode keeps records on that browser only. Cloud mode uses the login form. Local records do not silently migrate into an account; export/import a backup explicitly if desired.
+Open the development address shown in the terminal. Without Supabase configuration, choose **Try on this device**. To enable account-based cloud mode, follow the next section.
 
 ```sh
-npm run build       # TypeScript, production assets and versioned offline shell
-npm run preview     # Validate the production build locally (including service worker)
-npm test            # Sync/backup/date tests + PostgreSQL grants/RLS/CAS tests
-npm run test:e2e     # Chromium workflow, responsive sizes, offline reopening and PDFs
-npm audit
+npm run build       # TypeScript, production assets and offline service worker
+npm run preview     # Serve the production build for local validation
+npm test            # Sync, backup, date and PostgreSQL/RLS tests
+npm run test:e2e     # Local browser workflows, responsive sizes, offline and PDF
+npm audit           # Dependency security audit
 ```
 
-E2E tests default to `/usr/bin/chromium` in this cloud machine. On another machine install Chromium with `npx playwright install chromium`, then set `CHROMIUM_PATH` to its executable, or adapt `playwright.config.ts` to use Playwright's bundled Chromium. This is browser-size testing, not real Safari or device certification. Test PDFs are generated under `test-results/` (ignored by Git).
+The service worker runs in production builds, not the Vite development server. Browser tests default to `/usr/bin/chromium` in the cloud environment. Elsewhere, install Chromium with `npx playwright install chromium` and set `CHROMIUM_PATH` to its executable, or configure Playwright to use its bundled browser. Test output is Git-ignored.
 
-## Connect Supabase / 数据库及登录配置
+## Configure your own Supabase project
 
-1. Create a Supabase project; choose a region appropriate for your personal data. Record that region for your privacy notice. Free plans may pause or change quotas; review the current plan before relying on the app long term.
-2. Open SQL Editor and run **[supabase/migrations/001_planner.sql](supabase/migrations/001_planner.sql)** once in a new project. Or use the Supabase CLI migration workflow (`supabase db push`) after linking your project. The migration creates tables, RLS, an atomic write RPC, append-only revision history, and enables Realtime when its publication exists.
-3. Under Authentication → Providers enable Email/password. Keep email confirmation enabled. Configure production SMTP before regular use; default development email delivery is rate limited. No OAuth provider or social login is required.
-4. Under Authentication → URL Configuration set **Site URL** to your HTTPS app origin. Add the exact same origin to **Redirect URLs**. Add your local development origin only for development. Account confirmation and password recovery return to that origin. Recovery uses PKCE: open the email in the same browser that requested it.
-5. Under Project Settings → API copy the project URL and **publishable key** (or legacy public `anon` key) into `.env.local`:
+1. Create a project and choose a suitable data region. Record the region for your users; do not assume a specific country or backup policy.
+2. In SQL Editor, run [001_planner.sql](supabase/migrations/001_planner.sql) **once in a new project**. Alternatively, link the project with the Supabase CLI and use `supabase db push`. The migration creates private tables, Row Level Security (RLS), an atomic version-checked write function, revision history and Realtime publication membership when available.
+3. Enable **Email/password** authentication and keep email confirmation enabled. Configure production SMTP for regular use; development email delivery is rate limited.
+4. Set **Authentication → URL Configuration → Site URL** to your app's HTTPS origin, and add the exact origin to **Redirect URLs**. Add local origins only for development. Password recovery uses PKCE; open the email in the browser that requested it.
+5. Copy `.env.example` to `.env.local` and supply your project's public configuration:
 
    ```dotenv
    VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-   VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLIC_PUBLISHABLE_KEY
+   VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLIC_PUBLISHABLE_OR_ANON_KEY
    ```
 
-   These two values are public client configuration. **Never use `service_role`, an `sb_secret_…` key, a database password, or a management token in any VITE variable.** All VITE values are compiled into browser assets. Never commit `.env.local`.
+   These are public browser values. **Never put a service-role key, `sb_secret_…` key, database password or management token into a `VITE_` variable.** Never commit `.env.local`.
 
-6. Restart the dev server or rebuild. Register an account, confirm the email, and sign in. Sign in with the **same account** on each device. Realtime should work automatically; 15-second polling plus focus/reconnect provides a fallback.
-7. Validate RLS and actual sync using [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md), including a second user. Do this before storing sensitive notes.
+6. Restart the development server or rebuild, then register, confirm your email and sign in. Test both synchronization and isolation using a second account before storing sensitive data.
 
-Network destinations: `registry.npmjs.org` for install; your **exact** `<project-ref>.supabase.co` over HTTPS/WSS for auth/data; GitHub for source control. The cloud environment's network policy must allow your project host before live validation. The app never needs a Supabase service key.
+A restricted development network must allow the exact project hostname over HTTPS/WSS, `registry.npmjs.org` for installation and GitHub for source control. The app does not need a Supabase service key.
 
-## Deploy an HTTPS app / 免费部署
+## Deploy your own copy
 
-The repository includes `vercel.json` with security headers and the Vite build configuration. Deployment is not performed by merely committing this file.
+1. Import the repository into Vercel and select **Vite**, **Node 24**, install command `npm ci`, build command `npm run build` and output directory `dist`.
+2. Set the two public Supabase variables above in the appropriate Vercel environments. Rebuild after changing them. Review whether preview deployments should use a separate test project.
+3. Deploy, then update Supabase's Site URL and exact allowed redirects to match your production origin.
+4. Follow the [acceptance checklist](docs/ACCEPTANCE.md), including email login/recovery, cross-device updates, offline reconnect, conflicts and two-user isolation.
 
-1. In your Vercel account import this GitHub repository. Choose Vite, Node 24, install `npm ci`, build `npm run build`, output `dist`.
-2. Set the two **public** Supabase environment values above in the deployment's environment settings. Keep private credentials in each provider's secure settings, never in chat or the repository. Rebuild after changing VITE values.
-3. Deploy. Use the resulting **HTTPS** production origin to configure Supabase Site URL and Redirect URLs. Avoid wildcard auth redirects. Keep preview and production data separate if desired.
-4. Confirm sign-up email, login, password reset, multi-device sync, offline restart and print behavior using the acceptance checklist. Vercel Hobby/Supabase Free are possible personal-use starting points, subject to provider limits and terms.
+[vercel.json](vercel.json) provides security headers and build settings. On another HTTPS static host, preserve those headers, make `/sw.js` revalidate and allow your Supabase HTTPS/WSS endpoints in `connect-src`. A custom Supabase domain needs a corresponding Content Security Policy change. Do not cache API responses.
 
-Any HTTPS static host can serve `dist/`; copy the security headers from `vercel.json`, make `/sw.js` revalidate, and allow `https://<your-project>.supabase.co` and `wss://<your-project>.supabase.co` in `connect-src`. Custom Supabase domains need a corresponding CSP change. Do not cache API responses. Localhost is for development; it is not a public deployment.
+If Vercel blocks a deployment because it cannot identify a commit author, check the author's GitHub identity and the project's connected Git account/access. A Preview deployment does not update the Production URL; merge reviewed changes into the configured production branch, normally `main`.
 
-## Install on Apple devices / 安装到 Apple 设备
+## Privacy and current limits
 
-- **iPhone / iPad:** visit the deployed HTTPS URL in Safari → Share / 分享 → Add to Home Screen / 添加到主屏幕 → open the new icon → sign in. An already loaded production shell can reopen offline; first visit and first login require a connection.
-- **Mac:** use the deployed URL in any modern browser. Safari (macOS Sonoma or newer): File → Add to Dock. Chrome/Edge: use the install app menu when offered. Browser-specific install support varies.
-- iPhone uses bottom navigation and single-column cards. iPad uses a sidebar, calendar and split planner layout, with a wider writing workspace in landscape. Mac expands the calendar, modules and dashboard; tasks can be dragged within a module or reordered with buttons. Alt+1–4 switches the main views.
-- iOS storage may be evicted under pressure or cleared by the user. Private browsing may restrict storage. Local-only mode and unsynchronized edits are not substitutes for backups. Updates activate after existing app tabs close; cached shell and local records remain separate.
+Read [the security and data-handling guide](docs/SECURITY.md) before storing sensitive records.
 
-## Implemented / 已实现
+- Cloud records are stored in **your Supabase project's selected region** and cached in each browser. RLS separates authenticated users; HTTPS protects transport.
+- This is **not end-to-end encryption**. Project administrators and the provider may access cloud data, and someone with access to an unlocked browser profile may access local data. Notes are not sent to AI or analytics services.
+- Deleting an entry creates a synchronized deletion marker; it does not immediately erase server history. Permanent account deletion currently requires the project owner's trusted Supabase administration flow, plus separate removal of device data and exported backups.
+- Self-service account deletion, a revision-history recovery interface and background push notifications are not implemented. Sync currently fetches the full account dataset in pages, rather than using incremental synchronization for very large archives.
+- Automated viewport tests do not certify actual iPhone/iPad/Mac Safari behavior. Production settings, real-device installation, storage eviction and platform print dialogs need separate validation.
 
-- Account creation, email confirmation, password login/recovery/sign-out; cloud account separation.
-- Daily task CRUD across eight modules: study, main priorities (up to three via the add UI), alternative activities, meals, exercise, social, leisure and to-dos. Dates, planned times, actual study duration, location, custom activity types, protein-source category, deadline, priority, completion, defer and reordering. Unfinished main tasks/to-dos remain accessible.
-- Per-day long Notes, optional reflections, End My Day and configurable 01:00 bedtime default.
-- Gentle habits: done / skipped / blank; custom habits; movement and sitting observations.
-- Local autosave, offline persistent outbox, automatic authenticated cloud sync, retries, status display, optimistic revision checks, explicit conflict review and cloud revision history.
-- Month/week calendar, history search, weekly/monthly summaries, actual study minutes, exercise goal, social/alcohol-free/routine counts, meal-category frequency (not nutrient intake). Missing days are shown as missing, not invented observations.
-- English/Chinese, light/dark, collapsible/reorderable modules. Language/theme are device preferences; planner content, habits and module settings sync.
-- JSON backup validation, confirmation, duplicate-safe **missing-record-only** import. Existing/tombstoned records are not overwritten; differences are counted and skipped. A backup is not a destructive database restore.
-- System print/PDF: daily planner, Notes, combined daily two-page template, whole week, filled/blank, English/Chinese, US Letter. Long content flows onto additional pages rather than being silently clipped. Requires the platform print/share dialog; this is not a one-click binary PDF download API.
-- App-only reminders: deadlines are shown with tasks and carried-over unfinished to-dos. **No system/background push notifications**.
+## Verification and documentation
 
-## Privacy, backup and limits / 隐私、备份和边界
+- [Testing scope and original verification record](docs/TESTING.md)
+- [Dated production acceptance report, findings and test-access requirements](docs/PRODUCTION-ACCEPTANCE-2026-10-23.md)
+- [Live and real-device acceptance checklist](docs/ACCEPTANCE.md)
+- [Security, retention, deletion and recovery](docs/SECURITY.md)
+- [Chinese setup guide](docs/SETUP.zh-CN.md)
 
-Read **[docs/SECURITY.md](docs/SECURITY.md)** before storing personal or health-related records. Cloud data is stored in the region selected for YOUR Supabase project; the app cannot infer or guarantee a specific country. Supabase/project administrators can access database contents. **This is not end-to-end encryption.** Database access is authenticated and isolated with RLS; HTTPS protects transport. There is no AI integration or telemetry.
+For unauthenticated deployed-site checks, run `npm run test:production`; it defaults to the app URL above. For authenticated tests, securely inject `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `PLANNER_TEST_EMAIL`, `PLANNER_TEST_PASSWORD`, `PLANNER_OTHER_EMAIL` and `PLANNER_OTHER_PASSWORD`, then run:
 
-Export JSON regularly via Settings → Backup & restore; store plaintext exports securely outside the device. Import requires confirmation and never deletes or overwrites existing records. If versions differ, retain the file and compare manually; automatic historical rollback/overwrite is intentionally not included. Resolve conflicts before export so neither side is silently omitted. Accepted cloud revisions and tombstones remain in the database; see SECURITY for recovery and permanent deletion. Only current live records are in the regular portable backup, not the server's revision audit history.
+```sh
+PLANNER_BASE_URL=https://personal-life-planner-omega.vercel.app npm run test:live
+```
 
-**Not yet verified / remaining:** deployed live Auth/Realtime and three actual Apple devices, Safari print output, iOS offline eviction behavior; see [docs/TESTING.md](docs/TESTING.md). Further enhancements include account deletion UI, user-facing revision-history recovery, richer recurring reminders/push, advanced trend charts and a configurable sync pagination strategy for very large multi-year datasets. The current sync fetches the account's complete record set in pages; appropriate for a personal MVP, not unlimited datasets.
-
-External services are not provisioned automatically by this repository. The production URL above was supplied after deployment; secure test-account configuration and the real-device acceptance check are still required before certifying cloud sync.
-
-For optional automated **live** validation, use two confirmed, disposable Supabase test accounts and provide `PLANNER_TEST_EMAIL`, `PLANNER_TEST_PASSWORD`, `PLANNER_OTHER_EMAIL`, `PLANNER_OTHER_PASSWORD` plus the two VITE values through a secure process environment. Then run `npm run test:live`. It uses three independent browser contexts plus a second account, writes test data on **2099-12-20**, and leaves those test records for inspection. Do not use personal production accounts. This test is separate from the local suite, requires all six variables, and has not been run without a configured cloud project. No trace/video is recorded for the live suite.
-
-For deployed-site verification use `npm run test:production`. To run authenticated checks against the actual deployment, securely inject the six project/account variables and set `PLANNER_BASE_URL=https://personal-life-planner-omega.vercel.app` before `npm run test:live`; otherwise the live suite tests a local frontend against Supabase. See the acceptance report for exact scope, access blockers and secret handling.
-
-Deployment: Vercel.
+Use two confirmed, disposable accounts and protected runtime secrets, never passwords in chat or committed files. The live suite writes test records on **2099-12-20** and leaves them for inspection. Without `PLANNER_BASE_URL`, it tests a local frontend against Supabase. Remote suites disable traces, screenshots and videos. Historical acceptance reports describe the conditions at their stated date; they are not a live uptime monitor or a claim that every real-device check has passed.
