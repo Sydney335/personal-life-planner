@@ -9,7 +9,15 @@ async function login(page: Page, email: string, password: string) {
   await page
     .getByLabel("Password (12+ characters)", { exact: true })
     .fill(password);
+  const signInRequest = page.waitForRequest(
+    (request) =>
+      new URL(request.url()).pathname === "/auth/v1/token" &&
+      request.method() === "POST",
+  );
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  expect(new URL((await signInRequest).url()).origin).toBe(
+    new URL(process.env.VITE_SUPABASE_URL!).origin,
+  );
   await expect(page.getByText("Saved to cloud", { exact: true })).toBeVisible();
   await page.locator("#selected-day").fill(day);
 }
@@ -22,6 +30,7 @@ async function notes(page: Page) {
 }
 test("real hosted cloud: three sessions, offline convergence, conflicts and a second user", async ({
   browser,
+  baseURL,
 }) => {
   const contexts: BrowserContext[] = [];
   const pages: Page[] = [];
@@ -31,7 +40,11 @@ test("real hosted cloud: three sessions, offline convergence, conflicts and a se
       [834, 1194],
       [1440, 1000],
     ]) {
-      const context = await browser.newContext({ viewport: { width, height } });
+      const context = await browser.newContext({
+        baseURL,
+        viewport: { width, height },
+        locale: "en-US",
+      });
       contexts.push(context);
       const page = await context.newPage();
       pages.push(page);

@@ -23,6 +23,7 @@ const dbPromise = () =>
     },
   }));
 export class Store {
+  private readonly writer = crypto.randomUUID();
   constructor(readonly owner: string) {}
   async all() {
     return (await dbPromise()).getAllFromIndex("records", "owner", this.owner);
@@ -30,18 +31,38 @@ export class Store {
   async get(id: string) {
     return (await dbPromise()).get("records", [this.owner, id]);
   }
-  async edit(value: RecordValue) {
+  async edit(value: RecordValue, observedRevision?: number) {
     const valid = recordSchema.parse(value);
     const db = await dbPromise();
     const tx = db.transaction("records", "readwrite");
     const prev = await tx.store.get([this.owner, value.id]);
+    // The UI may still display an old revision after a pull committed to IDB.
+    // Never adopt an unseen remote base. Own acknowledgements are safe because
+    // this Store instance already knows the edits that produced them.
+    const unseenRemote =
+      prev &&
+      observedRevision !== undefined &&
+      prev.revision > observedRevision &&
+      prev.writer !== this.writer &&
+      !sameValue(prev, valid);
+    const conflict =
+      prev?.conflict ??
+      (unseenRemote
+        ? ({
+            ...valueOf(prev),
+            revision: prev.revision,
+            last_mutation: prev.mutation,
+            updated_at: "",
+          } as RemoteRecord)
+        : undefined);
     await tx.store.put({
       ...valid,
       owner: this.owner,
+      writer: this.writer,
       revision: prev?.revision ?? 0,
       mutation: crypto.randomUUID(),
       pending: true,
-      conflict: prev?.conflict,
+      conflict,
     });
     await tx.done;
   }
@@ -57,6 +78,7 @@ export class Store {
             ? {
                 ...valueOf(remote),
                 owner: this.owner,
+                writer: latest.writer,
                 revision: remote.revision,
                 mutation: latest.mutation,
                 pending: false,
@@ -79,6 +101,7 @@ export class Store {
             ...valueOf(remote),
             owner: this.owner,
             revision: remote.revision,
+            writer: local.writer,
             mutation: local.mutation,
             pending: false,
           });
@@ -88,7 +111,7 @@ export class Store {
           ...valueOf(remote),
           owner: this.owner,
           revision: remote.revision,
-          mutation: crypto.randomUUID(),
+          mutation: remote.last_mutation,
           pending: false,
         });
     }
@@ -109,7 +132,7 @@ export class Store {
           ...valueOf(remote),
           owner: this.owner,
           revision: remote.revision,
-          mutation: crypto.randomUUID(),
+          mutation: remote.last_mutation,
           pending: false,
         });
       else {
@@ -121,6 +144,7 @@ export class Store {
           deleted: choice === "merge" ? false : val.deleted,
           owner: this.owner,
           revision: remote.revision,
+          writer: this.writer,
           mutation: crypto.randomUUID(),
           pending: true,
         });
@@ -145,6 +169,7 @@ export class Store {
         ...valueOf(val),
         owner: this.owner,
         revision: 0,
+        writer: this.writer,
         pending: true,
         mutation: crypto.randomUUID(),
       });

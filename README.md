@@ -4,7 +4,7 @@
 
 A working, bilingual, offline-capable React PWA for iPhone, iPad and Mac. Uses **Supabase Auth + PostgreSQL** for account-based cloud synchronization, and **IndexedDB** for durable local editing. No paid AI API, analytics, or third-party font CDN.
 
-**当前交付状态：源码可运行；云同步协议、数据库隔离和本地离线行为有自动化测试。没有连接真实 Supabase 项目或部署公开网址，因此尚未达到“真实 iPhone 新增后 iPad / Mac 可见”的最终验收。** Local mode is explicitly labeled and never pretends to synchronize.
+**正式网址（用户提供）：https://personal-life-planner-omega.vercel.app 。GitHub 已报告 main 的 Vercel 部署成功，但本验收环境的联网/证书限制阻止线上功能验证。** 本地测试与线上未验收项目见 [上线验收报告 / Production acceptance](docs/PRODUCTION-ACCEPTANCE-2026-10-23.md)。Local mode is explicitly labeled and never pretends to synchronize.
 
 ## Run locally / 本地运行
 
@@ -88,6 +88,8 @@ Export JSON regularly via Settings → Backup & restore; store plaintext exports
 
 **Not yet verified / remaining:** deployed live Auth/Realtime and three actual Apple devices, Safari print output, iOS offline eviction behavior; see [docs/TESTING.md](docs/TESTING.md). Further enhancements include account deletion UI, user-facing revision-history recovery, richer recurring reminders/push, advanced trend charts and a configurable sync pagination strategy for very large multi-year datasets. The current sync fetches the account's complete record set in pages; appropriate for a personal MVP, not unlimited datasets.
 
-No external service is provisioned automatically and no production URL is claimed. Provider account setup, secure project configuration and the real-device acceptance check are required before calling cloud sync complete.
+External services are not provisioned automatically by this repository. The production URL above was supplied after deployment; secure test-account configuration and the real-device acceptance check are still required before certifying cloud sync.
 
 For optional automated **live** validation, use two confirmed, disposable Supabase test accounts and provide `PLANNER_TEST_EMAIL`, `PLANNER_TEST_PASSWORD`, `PLANNER_OTHER_EMAIL`, `PLANNER_OTHER_PASSWORD` plus the two VITE values through a secure process environment. Then run `npm run test:live`. It uses three independent browser contexts plus a second account, writes test data on **2099-12-20**, and leaves those test records for inspection. Do not use personal production accounts. This test is separate from the local suite, requires all six variables, and has not been run without a configured cloud project. No trace/video is recorded for the live suite.
+
+For deployed-site verification use `npm run test:production`. To run authenticated checks against the actual deployment, securely inject the six project/account variables and set `PLANNER_BASE_URL=https://personal-life-planner-omega.vercel.app` before `npm run test:live`; otherwise the live suite tests a local frontend against Supabase. See the acceptance report for exact scope, access blockers and secret handling.

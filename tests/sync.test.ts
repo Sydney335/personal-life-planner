@@ -90,6 +90,52 @@ describe("offline and concurrency contract", () => {
     await engine(b).sync();
     expect((await b.get(id))?.deleted).toBe(true);
   });
+  it("preserves an unseen remote note when typing races the UI refresh", async () => {
+    await a.edit(note("base"));
+    await engine(a).sync();
+    await engine(b).sync();
+    const visibleRevision = (await a.get(id))!.revision;
+    await b.edit(note("remote paragraph"));
+    await engine(b).sync();
+    // IndexedDB has the pull result, but React still displays the earlier revision.
+    await a.merge(cloud.records.get(id)!);
+    await a.edit(note("base plus local typing"), visibleRevision);
+    await engine(a).sync();
+    expect(cloud.records.get(id)?.payload).toMatchObject({
+      text: "remote paragraph",
+    });
+    expect((await a.get(id))?.payload).toMatchObject({
+      text: "base plus local typing",
+    });
+    expect((await a.get(id))?.conflict?.payload).toMatchObject({
+      text: "remote paragraph",
+    });
+  });
+  it("does not conflict on the current session's own acknowledgement before a UI refresh", async () => {
+    await a.edit(note("first"), 0);
+    await engine(a).sync();
+    await a.edit(note("next keystroke"), 0);
+    await engine(a).sync();
+    expect((await a.get(id))?.conflict).toBeUndefined();
+    expect(cloud.records.get(id)?.payload).toMatchObject({
+      text: "next keystroke",
+    });
+  });
+  it("does not resurrect a remote deletion when the editor still shows an earlier revision", async () => {
+    await a.edit(note("base"));
+    await engine(a).sync();
+    await engine(b).sync();
+    await b.edit({ ...note("base"), deleted: true });
+    await engine(b).sync();
+    await a.merge(cloud.records.get(id)!);
+    await a.edit(note("stale local typing"), 1);
+    await engine(a).sync();
+    expect(cloud.records.get(id)?.deleted).toBe(true);
+    expect((await a.get(id))?.conflict?.deleted).toBe(true);
+    expect((await a.get(id))?.payload).toMatchObject({
+      text: "stale local typing",
+    });
+  });
   it("queues offline edits and synchronizes on reconnect", async () => {
     let online = false;
     const statuses: SyncStatus[] = [];
