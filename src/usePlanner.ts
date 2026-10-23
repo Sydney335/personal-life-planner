@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { canUpdatePlanner } from "./updateSafety";
 import { cloudFor, supabase } from "./cloud";
-import { Store } from "./store";
+import { Store, storageActivity } from "./store";
 import { SyncEngine, type SyncStatus } from "./sync";
 import { type LocalRecord, type RecordValue, type Note } from "./domain";
 export function usePlanner(owner: string) {
@@ -10,6 +11,8 @@ export function usePlanner(owner: string) {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const seq = useRef(0);
+  const safety = useRef({ loaded, error, status });
+  safety.current = { loaded, error, status };
   const queue = useRef(Promise.resolve());
   const unsaved = useRef(
     new Map<string, { value: RecordValue; revision: number }>(),
@@ -147,6 +150,23 @@ export function usePlanner(owner: string) {
     store,
     reload,
     sync: () => engine.sync(),
+    pauseSync: () => engine.pause(),
+    canUpdate: (automatic: boolean) =>
+      canUpdatePlanner(
+        automatic,
+        owner,
+        () => ({
+          ...safety.current,
+          unsaved: unsaved.current.size,
+          syncing: engine.busy,
+          pendingWrites: storageActivity.pendingWrites,
+          sequence: seq.current,
+        }),
+        async () => {
+          await queue.current;
+        },
+        () => store.all(),
+      ),
     flush: async () => {
       await queue.current;
       if (unsaved.current.size)

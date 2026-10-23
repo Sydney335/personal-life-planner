@@ -49,6 +49,10 @@ self.addEventListener("install", (event) => {
 });
 
 async function cleanup() {
+  // A complete waiting shell belongs to the next worker, not to this worker's
+  // obsolete caches. In particular, reloading after Later must retain it.
+  if (self.registration.installing || self.registration.waiting) return;
+  const keys = await caches.keys();
   const clients = await windows();
   const versions = await Promise.all(
     clients.map(
@@ -73,13 +77,18 @@ async function cleanup() {
     ),
   );
   // Suspended/legacy clients cannot confirm their version: retain their assets.
-  if (versions.includes(null)) return;
+  if (
+    versions.includes(null) ||
+    self.registration.installing ||
+    self.registration.waiting
+  )
+    return;
   const keep = new Set([
     CACHE,
     ...versions.map((id) => `daylight-shell-${id}`),
   ]);
   await Promise.all(
-    (await caches.keys())
+    keys
       .filter((name) => owned(name) && !keep.has(name))
       .map((name) => caches.delete(name)),
   );
@@ -136,10 +145,10 @@ self.addEventListener("fetch", (event) => {
           if (html.includes(`name="daylight-build" content="${BUILD}"`))
             return response;
           // Keep HTML/JS/CSS on the same build until the new complete shell can activate.
-          const client = await self.clients.get(
-            event.resultingClientId || event.clientId,
-          );
-          client?.postMessage({ type: "DAYLIGHT_DEPLOYED" });
+          // A resulting navigation client is reserved until this response is sent.
+          // clients.get(resultingClientId) here would deadlock the navigation.
+          for (const client of await windows())
+            client.postMessage({ type: "DAYLIGHT_DEPLOYED" });
         } catch {
           /* Network failure/timeout: the complete installed shell is available. */
         } finally {

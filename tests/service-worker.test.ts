@@ -86,7 +86,7 @@ function worker(clientBuilds: (string | null)[] = []) {
     });
     return await done;
   }
-  return { dispatch, fetch, stores, cache, skipWaiting };
+  return { dispatch, fetch, stores, cache, skipWaiting, self };
 }
 it("installs a complete shell and rejects a failed download without deleting the current cache", async () => {
   const w = worker();
@@ -179,4 +179,16 @@ it("permits requested activation only for the sole requesting window", async () 
       builds.length === 1 ? { activating: true } : { blocked: "tabs" },
     );
   }
+});
+
+it("never removes a complete waiting shell when the old page reloads after Later", async () => {
+  const w = worker(["A"]);
+  Object.assign(w.self.registration, { waiting: {} });
+  w.stores.set("daylight-shell-A", new Map());
+  w.stores.set("daylight-shell-B", new Map());
+  await w.dispatch("message", { data: { type: "DAYLIGHT_CLEANUP" } });
+  expect([...w.stores.keys()].sort()).toEqual([
+    "daylight-shell-A",
+    "daylight-shell-B",
+  ]);
 });
